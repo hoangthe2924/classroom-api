@@ -7,14 +7,8 @@ module.exports = (sequelize, Sequelize) => {
       autoIncrement: true,
       unique: true,
     },
-    user_id: {
-      type: Sequelize.INTEGER,
-    },
-    class_id: {
-      type: Sequelize.INTEGER,
-    },
     role: {
-      type: Sequelize.INTEGER,
+      type: Sequelize.STRING,
     },
   });
 

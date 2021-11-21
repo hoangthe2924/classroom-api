@@ -1,6 +1,6 @@
 const dbConfig = require("../config/db.config.js");
 
-const Sequelize = require("sequelize");
+const { Sequelize } = require("sequelize");
 const sequelize = new Sequelize(dbConfig.DB, dbConfig.USER, dbConfig.PASSWORD, {
   host: dbConfig.HOST,
   dialect: dbConfig.dialect,
@@ -23,15 +23,16 @@ db.class = require("./class.model.js")(sequelize, Sequelize);
 db.user = require("./user.model.js")(sequelize, Sequelize);
 db.user_class = require("./user_class.model.js")(sequelize, Sequelize);
 
+db.class.belongsTo(db.user, { foreignKey: "ownerId" });
+db.user.hasMany(db.class, { foreignKey: "ownerId", as: "owner" });
+
 db.class.belongsToMany(db.user, {
   through: db.user_class,
   as: "users",
-  foreignKey: "class_id",
 });
 db.user.belongsToMany(db.class, {
   through: db.user_class,
   as: "classes",
-  foreignKey: "user_id",
 });
 
 db.user.hasMany(db.user_class);

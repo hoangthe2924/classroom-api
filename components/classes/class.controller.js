@@ -4,11 +4,19 @@ const User = db.user;
 const Op = db.Sequelize.Op;
 
 // Create and Save a new Class
-exports.create = (req, res) => {
+exports.create = async (req, res) => {
   // Validate request
   if (!req.body.className) {
     res.status(400).send({
       message: "Content cannot be empty!",
+    });
+    return;
+  }
+  const ownerId = req.body.ownerId; // Replace currentId with req.user.id
+  const owner = await User.findByPk(ownerId);
+  if (!owner) {
+    res.status(400).send({
+      message: "You don't have permission!",
     });
     return;
   }
@@ -21,7 +29,19 @@ exports.create = (req, res) => {
   };
 
   // Save Class in the database
-  Class.create(myClass)
+  const createdClass = await Class.create(myClass);
+  // .then((data) => {
+  //   console.log("created", data);
+  //   res.send(data);
+  // })
+  // .catch((err) => {
+  //   res.status(500).send({
+  //     message: err.message || "Some error occurred while creating the Class.",
+  //   });
+  // });
+  createdClass.setUser(owner);
+  createdClass
+    .save()
     .then((data) => {
       console.log("created", data);
       res.send(data);
@@ -49,7 +69,7 @@ exports.findAll = (req, res) => {
         as: "users",
         attributes: ["id", "username", "studentId"],
         through: {
-          attributes: [],
+          attributes: ["role"],
         },
       },
     ],
@@ -125,6 +145,7 @@ exports.addUser = (req, res) => {
             });
           }
 
+          // Role student
           foundClass.addUser(member, { through: { role: "student" } });
           console.log(
             `>> added member id=${member.id} to Class id=${foundClass.id}`

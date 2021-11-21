@@ -6,10 +6,10 @@ const logger = require("morgan");
 const cors = require("cors");
 
 const indexRouter = require("./routes/index");
-const usersRouter = require("./routes/users");
+// const usersRouter = require("./routes/users");
 // const classesRouter = require('./components/classes')
 const classesRouter = require("./components/classes/index");
-const usersRouter2 = require("./components/users/index");
+const usersRouter = require("./components/users/index");
 const app = express();
 
 // view engine setup
@@ -24,9 +24,9 @@ app.use(cookieParser());
 app.use(express.static(path.join(__dirname, "public")));
 
 app.use("/", indexRouter);
-app.use("/users", usersRouter);
+// app.use("/users", usersRouter);
 app.use("/classes", classesRouter);
-app.use("/users2", usersRouter2);
+app.use("/users", usersRouter);
 
 // catch 404 and forward to error handler
 app.use(function (req, res, next) {
