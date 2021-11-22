@@ -1,4 +1,7 @@
-const db = require("../../utils/database");
+const db = require("../../models");
+const Class = db.class;
+const User = db.user;
+const Op = db.Sequelize.Op;
 
 module.exports = {
     async getClassInfoByID(classID){
