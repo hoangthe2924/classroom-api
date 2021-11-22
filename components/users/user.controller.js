@@ -1,20 +1,24 @@
 const db = require("../../models");
 const User = db.user;
 const Op = db.Sequelize.Op;
+const bcrypt = require("bcryptjs");
+
 
 // Create and Save a new User
 exports.create = (req, res) => {
   // Validate request
-  if (!req.body.username) {
+  if (!req.body.username || !req.body.password || !req.body.email) {
     res.status(400).send({
       message: "Content can not be empty!",
     });
     return;
   }
+  const hash = bcrypt.hashSync(req.body.password, 10);
 
   const newUser = {
     username: req.body.username,
     email: req.body.email,
+    password: hash,
     studentId: req.body.studentId,
   };
 
