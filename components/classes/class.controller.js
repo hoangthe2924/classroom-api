@@ -25,7 +25,7 @@ const sendListInvitation = async (listEmail, classInfo, role) => {
   return sendedEmailList;
 };
 
-const addToClassIfHasAnAccount = (email) => {
+const addToClassIfHasAnAccount = async (email) => {
   const accountID = await classService.getAccountIDByEmail(email);
   if (accountID !== 0) {
     classService.addAccountToClass(accountID);

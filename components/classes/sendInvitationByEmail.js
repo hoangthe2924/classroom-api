@@ -8,7 +8,7 @@ exports.sendInvitation = async (email, classInfo, sender, role) => {
     service: "Gmail",
     auth: {
       user: "botmailer4229@gmail.com",
-      pass: "4MS!&sU+zJ#c",
+      pass: process.env.CLASSROOM_MAIL_PASSWORD,
     },
   });
     
