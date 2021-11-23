@@ -1,3 +1,4 @@
+const { user } = require("../../models");
 const db = require("../../models");
 const Class = db.class;
 const User = db.user;
@@ -5,7 +6,7 @@ const Op = db.Sequelize.Op;
 const classService = require("./class.service");
 const emailTransport = require("./sendInvitationByEmail");
 
-const sendListInvitation = async (listEmail, classInfo, role) => {
+const sendListInvitation = async (listEmail, classInfo, sender, role) => {
   const sendedEmailList = [];
   for (const email of listEmail) {
     const hasEnrolled = await classService.checkAlreadyEnrollment(
@@ -17,48 +18,48 @@ const sendListInvitation = async (listEmail, classInfo, role) => {
     }
 
     //Gui mail cho nhung ai chua enroll
-    const res = emailTransport.sendInvitation(email, classInfo, "BOT", role); //lay thong tin nguoi gui tu token
+    const res = emailTransport.sendInvitation(email, classInfo, sender, role); //lay thong tin nguoi gui tu token
     if (res) {
       sendedEmailList.push(email);
       //Kiem tra neu ho co tai khoan, add vo luon lop hoc
-      addToClassIfHasAnAccount(email);
+      const accountID = await classService.getAccountIDByEmail(email);
+      if (accountID > 0) {
+        classService.addUserToClass(accountID, classInfo.id, role);
+      }
     }
   }
 
   return sendedEmailList;
 };
 
-const addToClassIfHasAnAccount = async (email) => {
-  const accountID = await classService.getAccountIDByEmail(email);
-  if (accountID !== 0) {
-    classService.addAccountToClass(accountID);
-  }
-};
-
 exports.invitePeople = async function (req, res) {
   const listEmail = req.body.listEmail;
   const classID = req.body.classID;
   const role = req.body.role.trim().toLowerCase();
-  let result;
+  const user = req.user;
+  let result = false;
 
   const classInfo = await classService.getClassInfoByID(classID);
-  const sendedEmailList = sendListInvitation(listEmail, classInfo, role);
+  console.log(classInfo);
+  if(!classInfo){
+    res.status(500).json({ message: "Cannot get the class ID!" });
+  }
+  const sendedEmailList = await sendListInvitation(listEmail, classInfo, user, role);
+  //const sendedEmailList = sendListInvitation(listEmail, {className: "Haha", id: 3, cjc: "AhbkHd"}, role);
 
   if (role === "teacher") {
     result = await classService.addToTeacherWaitingRoom(
       classID,
       sendedEmailList
     );
-  }
-  if (role === "student") {
+    if (!result) {
+      res.status(404).json({ message: "error" });
+    }
+  }else if (role === "student") {
     //do nothing
   }
 
-  if (result.length === 0) {
-    res.status(404).json({ message: "error" });
-  } else {
-    res.status(200).res({ message: "Invitation has been sent successfully!" });
-  }
+  res.status(200).json({ message: "Invitation has been sent successfully!" });
 };
 
 // Create and Save a new Class
@@ -159,9 +160,25 @@ exports.findAll = async (req, res) => {
   // console.log("ss", JSON.stringify(classes));
 };
 
-// Get class detail, including student + teacher list
-exports.findOne = (req, res) => {
+// Get class detail
+exports.findOne = async (req, res) => {
   const id = req.params.id;
+  const userID = req.userID;
+
+  if (await !classService.checkIfUserIsInClass(userID)) {
+    const cjc = req.query.cjc;
+    if (await classService.checkCJC(id, cjc)) {
+      if (await classService.checkUserIsInWaitingList(userID)) {
+        classService.addUserToClass(userID, id, "teacher");
+      } else {
+        classService.addUserToClass(userID, id, "student");
+      }
+    } else {
+      res
+        .status(403)
+        .json({ message: "You don't have permission to access this class!" });
+    }
+  }
 
   // Check user from req token is the member of class ?
 
