@@ -19,14 +19,14 @@ const classController = require("./class.controller");
 //     res.send("OK");
 // });
 
-router.post('/people/invite', classController.invitePeople);
+router.post("/people/invite", classController.invitePeople);
 
-router.get("/", (req, res) => classes.findAll(req, res));
+router.get("/", (req, res) => classController.findAll(req, res));
 
-router.post("/", (req, res) => classes.create(req, res));
+router.post("/", (req, res) => classController.create(req, res));
 
-router.get("/:id", (req, res) => classes.findOne(req, res));
+router.get("/:id", (req, res) => classController.findOne(req, res));
 
-router.post("/:id", (req, res) => classes.addUser(req, res));
+router.post("/:id", (req, res) => classController.addUser(req, res));
 
 module.exports = router;
