@@ -20,17 +20,11 @@ const app = express();
 app.set("views", path.join(__dirname, "views"));
 app.set("view engine", "hbs");
 
-app.use(
-  cors({
-    origin: [
-      `${process.env.FRONT_URL}`,
-      "http://localhost:3000",
-      "http://localhost:3001",
-    ],
-    credentials: true,
-  })
-);
-app.options("*", cors());
+var corsOptions = {
+  origin: "http://localhost:3001"
+};
+
+app.use(cors(corsOptions));
 app.use(logger("dev"));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
