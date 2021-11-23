@@ -22,9 +22,16 @@ db.sequelize = sequelize;
 db.class = require("./class.model.js")(sequelize, Sequelize);
 db.user = require("./user.model.js")(sequelize, Sequelize);
 db.user_class = require("./user_class.model.js")(sequelize, Sequelize);
+db.teacherWaiting = require("./teacherWaiting.model.js")(sequelize, Sequelize);
 
 db.class.belongsTo(db.user, { foreignKey: "ownerId" });
 db.user.hasMany(db.class, { foreignKey: "ownerId", as: "owner" });
+
+db.teacherWaiting.belongsTo(db.class, { foreignKey: "classId" });
+db.class.hasMany(db.teacherWaiting, {
+  foreignKey: "classId",
+  as: "waitingTeachers",
+});
 
 db.class.belongsToMany(db.user, {
   through: db.user_class,
