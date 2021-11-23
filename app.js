@@ -20,11 +20,8 @@ const app = express();
 app.set("views", path.join(__dirname, "views"));
 app.set("view engine", "hbs");
 
-var corsOptions = {
-  origin: "http://localhost:3001"
-};
 
-app.use(cors(corsOptions));
+app.use(cors());
 app.use(logger("dev"));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
@@ -40,9 +37,18 @@ app.use("/users", usersRouter);
 app.listen(port, () => {
   console.log(`App server now listening on port ${port}`);
 });
-// catch 404 and forward to error handler
-app.use(function (req, res, next) {
-  next(createError(404));
+// // catch 404 and forward to error handler
+// app.use(function (req, res, next) {
+//   next(createError(404));
+// });
+app.use((req, res, next) => {
+  res.setHeader("Access-Control-Allow-Origin", "*");
+  res.setHeader(
+    "Access-Control-Allow-Methods",
+    "OPTIONS, GET, POST, PUT, PATCH, DELETE"
+  );
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
+  next();
 });
 
 // error handler
