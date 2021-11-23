@@ -1,46 +1,62 @@
 const db = require("../../models");
 const Class = db.class;
 const User = db.user;
+const UserClass = db.user_class;
 const Op = db.Sequelize.Op;
 
 module.exports = {
     async getClassInfoByID(classID){
-        const res = await db('Classes').where('id',classID).select('id','className');
-        if(res.length===0)
-            return null;
-        return res[0];
-    },
-
-    addToWaitingEnrollmentList(emailList, classID, role){
-        console.log('emailList', emailList);
-        const array = emailList.map(email => ({classid: classID, email: email, status: 0}));
-        if(role==='teacher')
-            return db('class_teacher_list_waiting').insert(array);
-        if(role==='student')
-            return db('class_student_list_waiting').insert(array);
-        return null;
+        const res = await Class.findByPk(classID)
+        return res;
     },
 
     async checkAlreadyEnrollment(email, classID){
-        const res = await db('class_people').where('classid',classID).andWhere('email',email);
-        if(res.length===0)
+        const res = await UserClass.findOne({where: {email: email, classId: classID}}); //note
+        if(res === null)
             return false;
         return true;
     },
 
-    joinClassByStudent(classID, email){
-
+    async addUserToClass(userID, classID, role){
+        try {
+            const resCls = await Class.findByPk(classID);
+            const resUser = await User.findByPk(userID);
+            if(!resCls || !resUser)
+                return 404;
+            
+            resCls.addUser(resUser, { through: { role: role } });
+            return 201;     
+        } catch (error) {
+            console.log(error);
+            return 500;
+        }
     },
 
-    joinClassByTeacher(classID, email){
+    async checkIfUserIsInClass(userID, classID){
+        const res = await UserClass.findOne({classId: classID, userId: userID});
+        return (res===null)? false:true;
+    },
 
+    async checkCJC(classID, cjc){
+        const res = await Class.findOne({id: classID, cjc: cjc});
+        return (res===null)? false:true;
+    },
+
+    async checkUserIsInWaitingList(userID, classID){
+        return null; //dummy
     },
 
     addToTeacherWaitingRoom(classID, emailList){
-        return this.addToWaitingEnrollmentList(emailList,classID,'teacher');
+        const array = emailList.map(email => ({classid: classID, email: email, status: 0}));
+
+        //dummy
+        return true;
     },
 
-    addToStudentWaitingRoom(classID, emailList){
-        return this.addToWaitingEnrollmentList(emailList,classID,'student');
-    }
+    getAccountIDByEmail(email){
+        const res = await User.findOne({email: email});
+        if(res===null)
+            return -1;
+        return res.id;
+    },
 };
