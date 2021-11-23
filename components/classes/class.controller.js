@@ -67,7 +67,7 @@ exports.create = async (req, res) => {
     });
     return;
   }
-  const ownerId = req.body.ownerId; // Replace currentId with req.user.id
+  const ownerId = req.body.ownerId || 1; // Replace this with id from token
   const owner = await User.findByPk(ownerId);
   if (!owner) {
     res.status(400).send({
@@ -95,6 +95,9 @@ exports.create = async (req, res) => {
   //   });
   // });
   createdClass.setUser(owner);
+  // Owner is teacher
+  createdClass.addUser(owner, { through: { role: "teacher" } });
+
   createdClass
     .save()
     .then((data) => {
@@ -109,39 +112,55 @@ exports.create = async (req, res) => {
 };
 
 // Retrieve all Classes from the database.
-// Check current user -> get all classes of user
-exports.findAll = (req, res) => {
+// Check token of current user from header -> get all classes of user
+exports.findAll = async (req, res) => {
   const className = req.query.className;
-  var condition = className
-    ? { className: { [Op.like]: `%${className}%` } }
-    : null;
 
-  Class.findAll({
-    where: condition,
+  // Get token
+  const token = req.headers["Authorization"];
+  // Convert token to currentUserId
+  console.log("header", req.headers);
+  const currentUserId = req.headers["userid"] || 1;
+  const currentUser = await User.findOne({
+    where: { id: currentUserId },
+    attributes: ["id", "username"],
     include: [
       {
-        model: User,
-        as: "users",
-        attributes: ["id", "username", "studentId"],
+        model: Class,
+        as: "classes",
+        attributes: ["id", "classname", "subject"],
         through: {
-          attributes: ["role"],
+          attributes: [],
         },
       },
     ],
-  })
-    .then((data) => {
-      res.send(data);
-    })
-    .catch((err) => {
-      res.status(500).send({
-        message: err.message || "Some error occurred while retrieving classes.",
-      });
+  });
+  if (!currentUser) {
+    res.status(400).send({
+      message: "You don't have permission!",
     });
+    return;
+  }
+  console.log(JSON.stringify(currentUser.classes));
+  res.send(currentUser.classes);
+  // let userClass = await currentUser.getClasses({
+  //   attributes: ["id", "classname", "subject"],
+  // });
+  // console.log("uc", JSON.stringify(userClass));
+
+  // console.log(JSON.stringify(currentUser));
+  // let classes = await Class.findAll({
+  //   where: { ownerId: currentUserId },
+  //   attributes: ["id", "classname", "subject"],
+  // });
+  // console.log("ss", JSON.stringify(classes));
 };
 
-// Get class detail
+// Get class detail, including student + teacher list
 exports.findOne = (req, res) => {
   const id = req.params.id;
+
+  // Check user from req token is the member of class ?
 
   Class.findByPk(id, {
     include: [
@@ -150,7 +169,7 @@ exports.findOne = (req, res) => {
         as: "users",
         attributes: ["id", "username", "studentId"],
         through: {
-          attributes: [],
+          attributes: ["role"],
         },
       },
     ],
@@ -179,6 +198,8 @@ exports.addUser = (req, res) => {
     email: req.body.email,
     studentId: req.body.studentId,
   };
+  //check current user is owner of this class ?
+
   Class.findByPk(classId)
     .then((foundClass) => {
       if (!foundClass) {
