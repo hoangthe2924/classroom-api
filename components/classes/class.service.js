@@ -1,7 +1,9 @@
 const db = require("../../models");
+const classModel = require("../../models/class.model");
 const Class = db.class;
 const User = db.user;
 const UserClass = db.user_class;
+const teacherWaitingList = db.teacherWaiting;
 const Op = db.Sequelize.Op;
 
 module.exports = {
@@ -11,7 +13,10 @@ module.exports = {
     },
 
     async checkAlreadyEnrollment(email, classID){
-        const res = await UserClass.findOne({where: {email: email, classId: classID}}); //note
+        const userID = this.getAccountIDByEmail(email);
+        if(userID<0)
+            return false;
+        const res = await UserClass.findOne({where: {userId: userID, classId: classID}}); //note
         if(res === null)
             return false;
         return true;
@@ -33,28 +38,38 @@ module.exports = {
     },
 
     async checkIfUserIsInClass(userID, classID){
-        const res = await UserClass.findOne({classId: classID, userId: userID});
+        const res = await UserClass.findOne({where: {classId: classID, userId: userID}});
         return (res===null)? false:true;
     },
 
     async checkCJC(classID, cjc){
-        const res = await Class.findOne({id: classID, cjc: cjc});
+        const res = await Class.findOne({where: {id: classID, cjc: cjc}});
         return (res===null)? false:true;
     },
 
     async checkUserIsInWaitingList(userID, classID){
-        return null; //dummy
+        const user = await User.findByPk(userID);
+        if(user!==null){
+            const listElement = teacherWaitingList.findOne({where: {mail: user.email, classId: classID}})
+            return (listElement)? true:false;
+        }
     },
 
-    addToTeacherWaitingRoom(classID, emailList){
-        const array = emailList.map(email => ({classid: classID, email: email, status: 0}));
-
-        //dummy
+    async addToTeacherWaitingRoom(classID, emailList){
+        const cls = await Class.findByPk(classID);
+        if(cls===null){
+            return false;
+        }
+            
+        console.log(emailList);
+        
+        const array = emailList.map(email => ({classid: classID, mail: email, classId: classID}));  
+        teacherWaitingList.bulkCreate(array);
         return true;
     },
 
-    getAccountIDByEmail(email){
-        const res = await User.findOne({email: email});
+    async getAccountIDByEmail(email){
+        const res = await User.findOne({where: {email: email}});
         if(res===null)
             return -1;
         return res.id;

@@ -41,7 +41,10 @@ exports.invitePeople = async function (req, res) {
 
   const classInfo = await classService.getClassInfoByID(classID);
   console.log(classInfo);
-  const sendedEmailList = sendListInvitation(listEmail, classInfo, user, role);
+  if(!classInfo){
+    res.status(500).json({ message: "Cannot get the class ID!" });
+  }
+  const sendedEmailList = await sendListInvitation(listEmail, classInfo, user, role);
   //const sendedEmailList = sendListInvitation(listEmail, {className: "Haha", id: 3, cjc: "AhbkHd"}, role);
 
   if (role === "teacher") {
