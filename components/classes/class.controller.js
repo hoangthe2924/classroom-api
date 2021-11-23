@@ -8,7 +8,10 @@ const emailTransport = require("./sendInvitationByEmail");
 const sendListInvitation = async (listEmail, classInfo, role) => {
   const sendedEmailList = [];
   for (const email of listEmail) {
-    const hasEnrolled = await classService.checkAlreadyEnrollment(email,classInfo.id);
+    const hasEnrolled = await classService.checkAlreadyEnrollment(
+      email,
+      classInfo.id
+    );
     if (hasEnrolled) {
       continue;
     }
