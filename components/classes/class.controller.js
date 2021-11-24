@@ -49,7 +49,6 @@ exports.invitePeople = async function (req, res) {
     user.username,
     role
   );
-  //const sendedEmailList = sendListInvitation(listEmail, {className: "Haha", id: 3, cjc: "AhbkHd"}, role);
 
   if (role === "teacher") {
     result = await classService.addToTeacherWaitingRoom(
