@@ -31,7 +31,7 @@ app.use(passport.initialize());
 
 app.use("/", indexRouter);
 // app.use("/users", usersRouter);
-app.use("/classes", classesRouter);
+app.use("/classes", passport.authenticate('jwt',{session: false}), classesRouter);
 app.use("/users", usersRouter);
 
 app.listen(port, () => {

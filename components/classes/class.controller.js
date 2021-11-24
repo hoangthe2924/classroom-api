@@ -59,7 +59,7 @@ exports.invitePeople = async function (req, res) {
     //do nothing
   }
 
-  res.status(200).json({ message: "Invitation has been sent successfully!" });
+  res.status(201).json({ message: "Invitation has been sent successfully!" });
 };
 
 // Create and Save a new Class
@@ -162,21 +162,30 @@ exports.findAll = async (req, res) => {
 
 // Get class detail
 exports.findOne = async (req, res) => {
+  console.log(req.query);
   const id = req.params.id;
-  const userID = req.userID;
+  const userID = req.user.id;
 
-  if (await !classService.checkIfUserIsInClass(userID)) {
+  if (!(await classService.checkIfUserIsInClass(userID, id))) {
     const cjc = req.query.cjc;
-    if (await classService.checkCJC(id, cjc)) {
-      if (await classService.checkUserIsInWaitingList(userID)) {
+    if(typeof cjc === 'undefined'){
+      res
+      .status(403)
+      .json({ message: "You don't have permission to access this class!" });
+      return;
+    }else if (await classService.checkCJC(id, cjc)) {
+      if (await classService.checkUserIsInWaitingList(userID, id)) {
+        console.log("He teacher");
         classService.addUserToClass(userID, id, "teacher");
       } else {
+        console.log("He student");
         classService.addUserToClass(userID, id, "student");
       }
     } else {
       res
         .status(403)
         .json({ message: "You don't have permission to access this class!" });
+      return;
     }
   }
 
