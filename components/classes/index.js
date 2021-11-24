@@ -2,6 +2,7 @@ const express = require("express");
 const router = express.Router();
 const classController = require("./class.controller");
 const authTeacher = require("../../middleware/teacher.mdw");
+const passport = require("../../middleware/passport/index");
 
 router.post("/people/invite", authTeacher, classController.invitePeople);
 
