@@ -18,6 +18,7 @@ exports.create = (req, res) => {
     username: req.body.username,
     email: req.body.email,
     password: hash,
+    fullname: req.body.fullname,
     studentId: req.body.studentId,
   };
 
