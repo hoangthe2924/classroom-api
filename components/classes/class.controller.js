@@ -40,11 +40,10 @@ exports.invitePeople = async function (req, res) {
   let result = false;
 
   const classInfo = await classService.getClassInfoByID(classID);
-  console.log(classInfo);
   if(!classInfo){
     res.status(500).json({ message: "Cannot get the class ID!" });
   }
-  const sendedEmailList = await sendListInvitation(listEmail, classInfo, user, role);
+  const sendedEmailList = await sendListInvitation(listEmail, classInfo, user.username, role);
   //const sendedEmailList = sendListInvitation(listEmail, {className: "Haha", id: 3, cjc: "AhbkHd"}, role);
 
   if (role === "teacher") {
@@ -162,11 +161,12 @@ exports.findAll = async (req, res) => {
 
 // Get class detail
 exports.findOne = async (req, res) => {
-  console.log(req.query);
   const id = req.params.id;
   const userID = req.user.id;
 
-  if (!(await classService.checkIfUserIsInClass(userID, id))) {
+  const requesterRole = await classService.checkIfUserIsInClass(userID, id);
+
+  if (!requesterRole) {
     const cjc = req.query.cjc;
     if(typeof cjc === 'undefined'){
       res
@@ -175,10 +175,8 @@ exports.findOne = async (req, res) => {
       return;
     }else if (await classService.checkCJC(id, cjc)) {
       if (await classService.checkUserIsInWaitingList(userID, id)) {
-        console.log("He teacher");
         classService.addUserToClass(userID, id, "teacher");
       } else {
-        console.log("He student");
         classService.addUserToClass(userID, id, "student");
       }
     } else {
@@ -188,6 +186,7 @@ exports.findOne = async (req, res) => {
       return;
     }
   }
+
 
   // Check user from req token is the member of class ?
 
@@ -205,6 +204,7 @@ exports.findOne = async (req, res) => {
   })
     .then((data) => {
       if (data) {
+        data.dataValues.requesterRole = requesterRole;
         res.send(data);
       } else {
         res.status(404).send({
