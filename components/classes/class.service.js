@@ -39,7 +39,7 @@ module.exports = {
 
     async checkIfUserIsInClass(userID, classID){
         const res = await UserClass.findOne({where: {classId: classID, userId: userID}});
-        return (res===null)? false:true;
+        return (res===null)? false:res.role;
     },
 
     async checkCJC(classID, cjc){
@@ -61,8 +61,6 @@ module.exports = {
         if(cls===null){
             return false;
         }
-            
-        console.log(emailList);
         
         const array = emailList.map(email => ({classid: classID, mail: email, classId: classID}));  
         teacherWaitingList.bulkCreate(array);
