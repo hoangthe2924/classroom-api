@@ -93,6 +93,20 @@ exports.update = async (req, res) => {
     fullname: req.body.fullname,
     studentId: req.body.studentId,
   };
+  const existingStudentId = await User.findOne({
+    where: { studentId: req.body.studentId },
+  });
+  if (existingStudentId && existingStudentId.id !== userInfo.id) {
+    console.log("existed");
+    res
+      .status(499)
+      .send(
+        "Student Id " +
+          existingStudentId.studentId +
+          " already existed. Please login with your account!"
+      );
+    return;
+  }
 
   User.findOne({
     where: { id: userInfo.id },
@@ -101,10 +115,9 @@ exports.update = async (req, res) => {
     .then((member) => {
       if (!member) {
         console.log("Member not found!");
-        res.status(500).send({
-          message:
-            "Error retrieving Member with studentId=" + newMember.studentId,
-        });
+        res
+          .status(500)
+          .send("Error retrieving Member with studentId=" + member.studentId);
         return;
       }
       if (!member.studentId || member.studentId === "") {
