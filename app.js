@@ -6,8 +6,6 @@ const logger = require("morgan");
 const cors = require("cors");
 require("dotenv").config();
 
-const port = 7000;
-
 const passport = require("./middleware/passport");
 const indexRouter = require("./routes/index");
 // const usersRouter = require("./routes/users");
@@ -19,7 +17,6 @@ const app = express();
 // view engine setup
 app.set("views", path.join(__dirname, "views"));
 app.set("view engine", "hbs");
-
 
 app.use(cors());
 app.use(logger("dev"));
@@ -34,9 +31,6 @@ app.use("/", indexRouter);
 app.use("/classes", classesRouter);
 app.use("/users", usersRouter);
 
-app.listen(port, () => {
-  console.log(`App server now listening on port ${port}`);
-});
 // // catch 404 and forward to error handler
 // app.use(function (req, res, next) {
 //   next(createError(404));

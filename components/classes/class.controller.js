@@ -41,10 +41,15 @@ exports.invitePeople = async function (req, res) {
 
   const classInfo = await classService.getClassInfoByID(classID);
   console.log(classInfo);
-  if(!classInfo){
+  if (!classInfo) {
     res.status(500).json({ message: "Cannot get the class ID!" });
   }
-  const sendedEmailList = await sendListInvitation(listEmail, classInfo, user, role);
+  const sendedEmailList = await sendListInvitation(
+    listEmail,
+    classInfo,
+    user,
+    role
+  );
   //const sendedEmailList = sendListInvitation(listEmail, {className: "Haha", id: 3, cjc: "AhbkHd"}, role);
 
   if (role === "teacher") {
@@ -55,7 +60,7 @@ exports.invitePeople = async function (req, res) {
     if (!result) {
       res.status(404).json({ message: "error" });
     }
-  }else if (role === "student") {
+  } else if (role === "student") {
     //do nothing
   }
 
@@ -71,8 +76,15 @@ exports.create = async (req, res) => {
     });
     return;
   }
-  const ownerId = req.body.ownerId || 1; // Replace this with id from token
-  const owner = await User.findByPk(ownerId);
+
+  console.log("curUser", req.user);
+  const currentUserId = req.user.id;
+  if (!currentUserId) {
+    res.status(400).send({
+      message: "Have you logged in yet?!",
+    });
+  }
+  const owner = await User.findByPk(currentUserId);
   if (!owner) {
     res.status(400).send({
       message: "You don't have permission!",
@@ -121,10 +133,14 @@ exports.findAll = async (req, res) => {
   const className = req.query.className;
 
   // Get token
-  const token = req.headers["Authorization"];
   // Convert token to currentUserId
-  console.log("header", req.headers);
-  const currentUserId = req.headers["userid"] || 1;
+  console.log("curUser", req.user);
+  const currentUserId = req.user.id;
+  if (!currentUserId) {
+    res.status(400).send({
+      message: "Have you logged in yet?!",
+    });
+  }
   const currentUser = await User.findOne({
     where: { id: currentUserId },
     attributes: ["id", "username"],
@@ -163,7 +179,8 @@ exports.findAll = async (req, res) => {
 // Get class detail
 exports.findOne = async (req, res) => {
   const id = req.params.id;
-  const userID = req.userID;
+  const userID = req.user.id;
+  console.log("uid", userID);
 
   if (await !classService.checkIfUserIsInClass(userID)) {
     const cjc = req.query.cjc;
@@ -174,6 +191,7 @@ exports.findOne = async (req, res) => {
         classService.addUserToClass(userID, id, "student");
       }
     } else {
+      console.log("notin!");
       res
         .status(403)
         .json({ message: "You don't have permission to access this class!" });
