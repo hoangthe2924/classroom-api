@@ -40,10 +40,15 @@ exports.invitePeople = async function (req, res) {
   let result = false;
 
   const classInfo = await classService.getClassInfoByID(classID);
-  if(!classInfo){
+  if (!classInfo) {
     res.status(500).json({ message: "Cannot get the class ID!" });
   }
-  const sendedEmailList = await sendListInvitation(listEmail, classInfo, user.username, role);
+  const sendedEmailList = await sendListInvitation(
+    listEmail,
+    classInfo,
+    user.username,
+    role
+  );
   //const sendedEmailList = sendListInvitation(listEmail, {className: "Haha", id: 3, cjc: "AhbkHd"}, role);
 
   if (role === "teacher") {
@@ -54,7 +59,7 @@ exports.invitePeople = async function (req, res) {
     if (!result) {
       res.status(404).json({ message: "error" });
     }
-  }else if (role === "student") {
+  } else if (role === "student") {
     //do nothing
   }
 
@@ -70,8 +75,15 @@ exports.create = async (req, res) => {
     });
     return;
   }
-  const ownerId = req.body.ownerId || 1; // Replace this with id from token
-  const owner = await User.findByPk(ownerId);
+
+  console.log("curUser", req.user);
+  const currentUserId = req.user.id;
+  if (!currentUserId) {
+    res.status(400).send({
+      message: "Have you logged in yet?!",
+    });
+  }
+  const owner = await User.findByPk(currentUserId);
   if (!owner) {
     res.status(400).send({
       message: "You don't have permission!",
@@ -120,10 +132,14 @@ exports.findAll = async (req, res) => {
   const className = req.query.className;
 
   // Get token
-  const token = req.headers["Authorization"];
   // Convert token to currentUserId
-  console.log("header", req.headers);
-  const currentUserId = req.headers["userid"] || 1;
+  console.log("curUser", req.user);
+  const currentUserId = req.user.id;
+  if (!currentUserId) {
+    res.status(400).send({
+      message: "Have you logged in yet?!",
+    });
+  }
   const currentUser = await User.findOne({
     where: { id: currentUserId },
     attributes: ["id", "username"],
@@ -168,25 +184,25 @@ exports.findOne = async (req, res) => {
 
   if (!requesterRole) {
     const cjc = req.query.cjc;
-    if(typeof cjc === 'undefined'){
+    if (typeof cjc === "undefined") {
       res
-      .status(403)
-      .json({ message: "You don't have permission to access this class!" });
+        .status(403)
+        .json({ message: "You don't have permission to access this class!" });
       return;
-    }else if (await classService.checkCJC(id, cjc)) {
+    } else if (await classService.checkCJC(id, cjc)) {
       if (await classService.checkUserIsInWaitingList(userID, id)) {
         classService.addUserToClass(userID, id, "teacher");
       } else {
         classService.addUserToClass(userID, id, "student");
       }
     } else {
+      console.log("notin!");
       res
         .status(403)
         .json({ message: "You don't have permission to access this class!" });
       return;
     }
   }
-
 
   // Check user from req token is the member of class ?
 
