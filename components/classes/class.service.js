@@ -50,9 +50,10 @@ module.exports = {
     async checkUserIsInWaitingList(userID, classID){
         const user = await User.findByPk(userID);
         if(user!==null){
-            const listElement = teacherWaitingList.findOne({where: {mail: user.email, classId: classID}})
-            return (listElement)? true:false;
+            const listElement = await teacherWaitingList.findOne({where: {mail: user.email, classId: classID}})
+            return (listElement===null)? false:true;
         }
+        return false;
     },
 
     async addToTeacherWaitingRoom(classID, emailList){
