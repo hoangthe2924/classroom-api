@@ -90,11 +90,13 @@ exports.create = async (req, res) => {
     return;
   }
 
+  const cjc = Math.random().toString(36).substring(2, 7);
+
   const myClass = {
     className: req.body.className,
     subject: req.body.subject,
     description: req.body.description,
-    cjc: req.body.cjc,
+    cjc: cjc,
   };
 
   // Save Class in the database
