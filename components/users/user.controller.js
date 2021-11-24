@@ -3,7 +3,6 @@ const User = db.user;
 const Op = db.Sequelize.Op;
 const bcrypt = require("bcryptjs");
 
-
 // Create and Save a new User
 exports.create = (req, res) => {
   // Validate request
@@ -83,6 +82,41 @@ exports.getInfo = (req, res) => {
     .catch((err) => {
       res.status(500).send({
         message: "Error retrieving User with id=" + id,
+      });
+    });
+};
+
+exports.update = async (req, res) => {
+  const userInfo = req.user;
+  console.log("in", userInfo);
+  const updateUser = {
+    fullname: req.body.fullname,
+    studentId: req.body.studentId,
+  };
+
+  User.findOne({
+    where: { id: userInfo.id },
+    attributes: { exclude: ["password"] },
+  })
+    .then((member) => {
+      if (!member) {
+        console.log("Member not found!");
+        res.status(500).send({
+          message:
+            "Error retrieving Member with studentId=" + newMember.studentId,
+        });
+        return;
+      }
+      if (!member.studentId || member.studentId === "") {
+        member.update(updateUser);
+      } else {
+        member.update({ fullname: req.body.fullname });
+      }
+      res.send(member);
+    })
+    .catch((err) => {
+      res.status(500).send({
+        message: err.message || "Some error occurred while creating the User.",
       });
     });
 };
