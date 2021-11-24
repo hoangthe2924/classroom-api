@@ -75,4 +75,9 @@ module.exports = {
             return -1;
         return res.id;
     },
+
+    async checkIfUserIsTeacher(userID, classID){
+        const res = await UserClass.findOne({where: {userId: userID, classId: classID, role: "teacher"}});
+        return (res!==null)? true:false;
+    }
 };

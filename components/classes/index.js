@@ -1,8 +1,9 @@
 const express = require("express");
 const router = express.Router();
 const classController = require("./class.controller");
+const authTeacher = require("../../middleware/teacher.mdw");
 
-router.post('/people/invite', classController.invitePeople);
+router.post('/people/invite', authTeacher, classController.invitePeople);
 
 router.get("/", (req, res) => classController.findAll(req, res));
 
