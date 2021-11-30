@@ -31,7 +31,7 @@ opts.secretOrKey = process.env.JWT_SECRET;
 
 passport.use(new JwtStrategy(opts, async function (jwt_payload, done) {
   const user = await User.scope('withoutPassword').findOne({ where: { username: jwt_payload.username} });
-  console.log(user);
+  // console.log(user);
   return done(null, user);
 }));
 

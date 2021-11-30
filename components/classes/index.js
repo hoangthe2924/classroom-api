@@ -17,10 +17,10 @@ router.put("/:classID/assignments/order", authTeacher, classController.updateAss
 
 router.delete("/:classID/assignments/:assignmentID", authTeacher, classController.deleteAssignment);
 
-router.get("/:classID/assignments", authTeacher, classController.getListAssignment);
+router.get("/detail/:classID/assignments", authTeacher, classController.getListAssignment);
 
-router.post("/:id/user", (req, res) => classController.addUser(req, res));
+router.post("/:classID/user", (req, res) => classController.addUser(req, res));
 
-router.get("/:id", (req, res) => classController.findOne(req, res));
+router.get("/:classID", (req, res) => classController.findOne(req, res));
 
 module.exports = router;
