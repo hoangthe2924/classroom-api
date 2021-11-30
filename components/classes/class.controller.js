@@ -177,7 +177,7 @@ exports.findAll = async (req, res) => {
 
 // Get class detail
 exports.findOne = async (req, res) => {
-  const id = req.params.id;
+  const id = req.params.classID;
   const userID = req.user.id;
 
   const requesterRole = await classService.checkIfUserIsInClass(userID, id);
@@ -237,7 +237,7 @@ exports.findOne = async (req, res) => {
 
 // Add user to class (student)
 exports.addUser = (req, res) => {
-  const classId = req.params.id;
+  const classId = req.params.classID;
   const newMember = {
     id: req.body.id,
     email: req.body.email,
@@ -327,6 +327,8 @@ exports.deleteAssignment = async (req, res) => {
 
 exports.getListAssignment = async (req, res) => {
   const classId = req.params.classID;
+
+  console.log("getclasslistass:", classId);
 
   const result = await classService.getListAssignment(classId);
   if(result){
