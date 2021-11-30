@@ -281,7 +281,7 @@ exports.addUser = (req, res) => {
 };
 
 exports.createAssignment = async (req, res) => {
-  const userID = 2; //req.user.id
+  const userID = req.user.id; //req.user.id
   const classID = req.body.classId;
   const newAssignment = {
     title: req.body.title,
