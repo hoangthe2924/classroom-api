@@ -17,7 +17,7 @@ router.put("/:classID/assignments/order", authTeacher, classController.updateAss
 
 router.delete("/:classID/assignments/:assignmentID", authTeacher, classController.deleteAssignment);
 
-router.get("/detail/:classID/assignments", authTeacher, classController.getListAssignment);
+router.get("/:classID/assignments", authTeacher, classController.getListAssignment);
 
 router.post("/:classID/user", (req, res) => classController.addUser(req, res));
 
