@@ -9,11 +9,11 @@ router.post("/", (req, res) => classController.create(req, res));
 
 router.post("/people/invite", authTeacher, classController.invitePeople);
 
-router.post("/assignments", authTeacher, classController.createAssignment);
+router.post("/:classID/assignments", authTeacher, classController.createAssignment);
 
-router.put("/assignments",authTeacher, classController.updateAssignment);
+router.put("/:classID/assignments", authTeacher, classController.updateAssignment);
 
-router.put("/assignments/order",authTeacher, classController.updateAssignmentOrder);
+router.put("/:classID/assignments/order", authTeacher, classController.updateAssignmentOrder);
 
 router.delete("/:classID/assignments/:assignmentID", authTeacher, classController.deleteAssignment);
 

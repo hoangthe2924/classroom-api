@@ -282,7 +282,7 @@ exports.addUser = (req, res) => {
 
 exports.createAssignment = async (req, res) => {
   const userID = req.user.id; //req.user.id
-  const classID = req.body.classId;
+  const classID = req.params.classID;
   const newAssignment = {
     title: req.body.title,
     point: req.body.point,
@@ -298,7 +298,7 @@ exports.createAssignment = async (req, res) => {
 };
 
 exports.updateAssignment = async (req, res) => {
-  // const classID = req.classId;
+  // const classId = req.params.classID;
   const assignment = {
     id: req.body.assignmentId,
     title: req.body.title,
@@ -337,7 +337,7 @@ exports.getListAssignment = async (req, res) => {
 };
 
 exports.updateAssignmentOrder = async (req, res) => {
-  const classID = req.body.classId;
+  const classID = req.params.classID;
   const newListAssignment = req.body.listAssignment;
 
   const result = await classService.updateAssignmentOrder(classID, newListAssignment);
