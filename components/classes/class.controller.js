@@ -1,4 +1,3 @@
-const { user } = require("../../models");
 const db = require("../../models");
 const Class = db.class;
 const User = db.user;
@@ -279,4 +278,72 @@ exports.addUser = (req, res) => {
     .catch((err) => {
       console.log(">> Error while adding Member to Class: ", err);
     });
+};
+
+exports.createAssignment = async (req, res) => {
+  const userID = 2; //req.user.id
+  const classID = req.body.classId;
+  const newAssignment = {
+    title: req.body.title,
+    point: req.body.point,
+    order: req.body.order,
+  };
+
+  const result = await classService.addNewAssignment(userID, classID, newAssignment);
+  if(result){
+    res.status(201).json(result);
+  }else{
+    res.status(500).json({message: "Cannot create new assignment!"});
+  }
+};
+
+exports.updateAssignment = async (req, res) => {
+  // const classID = req.classId;
+  const assignment = {
+    id: req.body.assignmentId,
+    title: req.body.title,
+    point: req.body.point,
+  }
+
+  const result = await classService.updateAssignment(assignment);
+  if(result){
+    res.status(200).json(result);
+  }else{
+    res.status(500).json({message: "Cannot edit assignment!"});
+  }
+};
+
+exports.deleteAssignment = async (req, res) => {
+  const assignmentId = req.params.assignmentID;
+  const classId = req.params.classID;
+
+  const result = await classService.deleteAssignment(classId, assignmentId);
+  if(result){
+    res.status(200).json({message: "Delete successfully!"});
+  }else{
+    res.status(500).json({message: "Cannot delete assignments!"});
+  }
+};
+
+exports.getListAssignment = async (req, res) => {
+  const classId = req.params.classID;
+
+  const result = await classService.getListAssignment(classId);
+  if(result){
+    res.status(200).json(result);
+  }else{
+    res.status(500).json({message: "Cannot get list assignments of class!"});
+  }
+};
+
+exports.updateAssignmentOrder = async (req, res) => {
+  const classID = req.body.classId;
+  const newListAssignment = req.body.listAssignment;
+
+  const result = await classService.updateAssignmentOrder(classID, newListAssignment);
+  if(result){
+    res.status(200).json({message: "Update order of assignments successfully!"});
+  }else{
+    res.status(500).json({message: "Cannot Update order of assignments!"});
+  }
 };
