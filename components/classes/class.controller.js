@@ -201,6 +201,53 @@ exports.getClassDetail = async (req, res) => {
     });
 };
 
+exports.findAll = async (req, res) => {
+  const className = req.query.className;
+
+  // Get token
+  // Convert token to currentUserId
+  console.log("curUser", req.user);
+  const currentUserId = req.user.id;
+  if (!currentUserId) {
+    res.status(400).send({
+      message: "Have you logged in yet?!",
+    });
+  }
+  const currentUser = await User.findOne({
+    where: { id: currentUserId },
+    attributes: ["id", "username"],
+    include: [
+      {
+        model: Class,
+        as: "classes",
+        attributes: ["id", "classname", "subject"],
+        through: {
+          attributes: [],
+        },
+      },
+    ],
+  });
+  if (!currentUser) {
+    res.status(400).send({
+      message: "You don't have permission!",
+    });
+    return;
+  }
+  console.log(JSON.stringify(currentUser.classes));
+  res.send(currentUser.classes);
+  // let userClass = await currentUser.getClasses({
+  //   attributes: ["id", "classname", "subject"],
+  // });
+  // console.log("uc", JSON.stringify(userClass));
+
+  // console.log(JSON.stringify(currentUser));
+  // let classes = await Class.findAll({
+  //   where: { ownerId: currentUserId },
+  //   attributes: ["id", "classname", "subject"],
+  // });
+  // console.log("ss", JSON.stringify(classes));
+};
+
 // Add user to class (student)
 exports.addUser = (req, res) => {
   const classId = req.params.classID;
