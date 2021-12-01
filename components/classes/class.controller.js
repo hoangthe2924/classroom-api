@@ -317,7 +317,7 @@ exports.createAssignment = async (req, res) => {
 exports.updateAssignment = async (req, res) => {
   // const classId = req.params.classID;
   const assignment = {
-    id: req.body.assignmentId,
+    id: req.body.id,
     title: req.body.title,
     point: req.body.point,
   };
