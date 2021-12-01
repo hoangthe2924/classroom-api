@@ -3,7 +3,7 @@ const router = express.Router();
 const classController = require("./class.controller");
 const authTeacher = require("../../middleware/teacher.mdw");
 
-router.get("/", (req, res) => classController.getListClass(req, res));
+router.get("/", (req, res) => classController.findAll(req, res));
 
 router.post("/", (req, res) => classController.createNewClass(req, res));
 
