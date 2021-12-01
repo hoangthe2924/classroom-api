@@ -1,7 +1,7 @@
 const nodemailer = require("nodemailer");
 
 exports.sendInvitation = async (email, classInfo, sender, role) => {
-  const link = process.env.FRONT_URL + `/classes/${classInfo.id}?cjc=${classInfo.cjc}`;
+  const link = process.env.FRONT_URL + `classes/${classInfo.id}?cjc=${classInfo.cjc}`;
   console.log(link);
 
   let transporter = nodemailer.createTransport({

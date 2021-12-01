@@ -1,6 +1,7 @@
 const db = require("../../models");
 const Class = db.class;
 const User = db.user;
+const Assignment = db.assignment;
 const Op = db.Sequelize.Op;
 const classService = require("./class.service");
 const emailTransport = require("./sendInvitationByEmail");
@@ -216,6 +217,11 @@ exports.findOne = async (req, res) => {
           attributes: ["role"],
         },
       },
+      {
+        model: Assignment,
+        as: "assignments",
+        attributes: ["id", "title", "point", "order"],
+      },
     ],
   })
     .then((data) => {
@@ -289,11 +295,15 @@ exports.createAssignment = async (req, res) => {
     order: req.body.order,
   };
 
-  const result = await classService.addNewAssignment(userID, classID, newAssignment);
-  if(result){
+  const result = await classService.addNewAssignment(
+    userID,
+    classID,
+    newAssignment
+  );
+  if (result) {
     res.status(201).json(result);
-  }else{
-    res.status(500).json({message: "Cannot create new assignment!"});
+  } else {
+    res.status(500).json({ message: "Cannot create new assignment!" });
   }
 };
 
@@ -303,13 +313,13 @@ exports.updateAssignment = async (req, res) => {
     id: req.body.assignmentId,
     title: req.body.title,
     point: req.body.point,
-  }
+  };
 
   const result = await classService.updateAssignment(assignment);
-  if(result){
+  if (result) {
     res.status(200).json(result);
-  }else{
-    res.status(500).json({message: "Cannot edit assignment!"});
+  } else {
+    res.status(500).json({ message: "Cannot edit assignment!" });
   }
 };
 
@@ -318,10 +328,10 @@ exports.deleteAssignment = async (req, res) => {
   const classId = req.params.classID;
 
   const result = await classService.deleteAssignment(classId, assignmentId);
-  if(result){
-    res.status(200).json({message: "Delete successfully!"});
-  }else{
-    res.status(500).json({message: "Cannot delete assignments!"});
+  if (result) {
+    res.status(200).json({ message: "Delete successfully!" });
+  } else {
+    res.status(500).json({ message: "Cannot delete assignments!" });
   }
 };
 
@@ -331,10 +341,10 @@ exports.getListAssignment = async (req, res) => {
   console.log("getclasslistass:", classId);
 
   const result = await classService.getListAssignment(classId);
-  if(result){
+  if (result) {
     res.status(200).json(result);
-  }else{
-    res.status(500).json({message: "Cannot get list assignments of class!"});
+  } else {
+    res.status(500).json({ message: "Cannot get list assignments of class!" });
   }
 };
 
@@ -342,10 +352,15 @@ exports.updateAssignmentOrder = async (req, res) => {
   const classID = req.params.classID;
   const newListAssignment = req.body.listAssignment;
 
-  const result = await classService.updateAssignmentOrder(classID, newListAssignment);
-  if(result){
-    res.status(200).json({message: "Update order of assignments successfully!"});
-  }else{
-    res.status(500).json({message: "Cannot Update order of assignments!"});
+  const result = await classService.updateAssignmentOrder(
+    classID,
+    newListAssignment
+  );
+  if (result) {
+    res
+      .status(200)
+      .json({ message: "Update order of assignments successfully!" });
+  } else {
+    res.status(500).json({ message: "Cannot Update order of assignments!" });
   }
 };
