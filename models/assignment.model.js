@@ -14,7 +14,7 @@ module.exports = (sequelize, Sequelize) => {
         type: Sequelize.FLOAT,
       },
       order: {
-        type: Sequelize.FLOAT,
+        type: Sequelize.INTEGER,
       },
     });
   
