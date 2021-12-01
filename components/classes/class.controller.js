@@ -66,7 +66,7 @@ exports.invitePeople = async function (req, res) {
 };
 
 // Create and Save a new Class
-exports.create = async (req, res) => {
+exports.createNewClass = async (req, res) => {
   // Validate request
   if (!req.body.className) {
     res.status(400).send({
@@ -75,7 +75,7 @@ exports.create = async (req, res) => {
     return;
   }
 
-  console.log("curUser", req.user);
+  //console.log("curUser", req.user);
   const currentUserId = req.user.id;
   if (!currentUserId) {
     res.status(400).send({
@@ -117,7 +117,7 @@ exports.create = async (req, res) => {
   createdClass
     .save()
     .then((data) => {
-      console.log("created", data);
+      //console.log("created", data);
       res.send(data);
     })
     .catch((err) => {
@@ -129,55 +129,15 @@ exports.create = async (req, res) => {
 
 // Retrieve all Classes from the database.
 // Check token of current user from header -> get all classes of user
-exports.findAll = async (req, res) => {
-  const className = req.query.className;
+exports.getListClass = async (req, res) => {
+  const user = req.user;
+  const result = await classService.getClassList(user);
 
-  // Get token
-  // Convert token to currentUserId
-  console.log("curUser", req.user);
-  const currentUserId = req.user.id;
-  if (!currentUserId) {
-    res.status(400).send({
-      message: "Have you logged in yet?!",
-    });
-  }
-  const currentUser = await User.findOne({
-    where: { id: currentUserId },
-    attributes: ["id", "username"],
-    include: [
-      {
-        model: Class,
-        as: "classes",
-        attributes: ["id", "classname", "subject"],
-        through: {
-          attributes: [],
-        },
-      },
-    ],
-  });
-  if (!currentUser) {
-    res.status(400).send({
-      message: "You don't have permission!",
-    });
-    return;
-  }
-  console.log(JSON.stringify(currentUser.classes));
-  res.send(currentUser.classes);
-  // let userClass = await currentUser.getClasses({
-  //   attributes: ["id", "classname", "subject"],
-  // });
-  // console.log("uc", JSON.stringify(userClass));
-
-  // console.log(JSON.stringify(currentUser));
-  // let classes = await Class.findAll({
-  //   where: { ownerId: currentUserId },
-  //   attributes: ["id", "classname", "subject"],
-  // });
-  // console.log("ss", JSON.stringify(classes));
+  res.status(result.status).json(result.message);
 };
 
 // Get class detail
-exports.findOne = async (req, res) => {
+exports.getClassDetail = async (req, res) => {
   const id = req.params.classID;
   const userID = req.user.id;
 
