@@ -200,7 +200,7 @@ module.exports = {
   async updateAssignmentOrder(classID, assignments) {
     try {
       for (let assignment of assignments) {
-        Assignment.update(
+        await Assignment.update(
           { order: assignment.order },
           { where: { id: assignment.id, classId: classID } }
         );
