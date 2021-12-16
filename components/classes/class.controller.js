@@ -222,7 +222,7 @@ exports.findAll = async (req, res) => {
         as: "classes",
         attributes: ["id", "classname", "subject"],
         through: {
-          attributes: [],
+          attributes: ["role"],
         },
       },
     ],
