@@ -162,8 +162,8 @@ module.exports = {
         { title: assignment.title, point: assignment.point },
         { where: { id: assignment.id }, returning: true }
       );
-      console.log(result);
-      if (result) {
+      //console.log(result);
+      if(result){
         const newInfo = await Assignment.findByPk(assignment.id);
         return newInfo ? newInfo : false;
       }
