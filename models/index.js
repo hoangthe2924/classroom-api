@@ -24,6 +24,10 @@ db.user = require("./user.model.js")(sequelize, Sequelize);
 db.user_class = require("./user_class.model.js")(sequelize, Sequelize);
 db.teacherWaiting = require("./teacherWaiting.model.js")(sequelize, Sequelize);
 db.assignment = require("./assignment.model.js")(sequelize, Sequelize);
+db.studentFullname = require("./studentFullname.model.js")(
+  sequelize,
+  Sequelize
+);
 
 db.class.belongsTo(db.user, { foreignKey: "ownerId" });
 db.user.hasMany(db.class, { foreignKey: "ownerId", as: "owner" });
@@ -35,13 +39,18 @@ db.class.hasMany(db.teacherWaiting, {
 });
 
 db.assignment.belongsTo(db.class, { foreignKey: "classId" });
-db.assignment.belongsTo(db.user, {foreignKey: "creatorId"});
+db.assignment.belongsTo(db.user, { foreignKey: "creatorId" });
 db.class.hasMany(db.assignment, {
   foreignKey: "classId",
   as: "assignments",
 });
-db.user.hasMany(db.assignment, {foreignKey: "creatorId", as: "creator"});
+db.user.hasMany(db.assignment, { foreignKey: "creatorId", as: "creator" });
 
+db.studentFullname.belongsTo(db.class, { foreignKey: "classId" });
+db.class.hasMany(db.studentFullname, {
+  foreignKey: "classId",
+  as: "studentList",
+});
 
 db.class.belongsToMany(db.user, {
   through: db.user_class,

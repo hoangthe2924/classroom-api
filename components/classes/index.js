@@ -9,15 +9,47 @@ router.post("/", (req, res) => classController.createNewClass(req, res));
 
 router.post("/people/invite", authTeacher, classController.invitePeople);
 
-router.post("/:classID/assignments", authTeacher, classController.createAssignment);
+router.post(
+  "/:classID/assignments",
+  authTeacher,
+  classController.createAssignment
+);
 
-router.put("/:classID/assignments", authTeacher, classController.updateAssignment);
+router.put(
+  "/:classID/assignments",
+  authTeacher,
+  classController.updateAssignment
+);
 
-router.put("/:classID/assignments/order", authTeacher, classController.updateAssignmentOrder);
+router.put(
+  "/:classID/assignments/order",
+  authTeacher,
+  classController.updateAssignmentOrder
+);
 
-router.delete("/:classID/assignments/:assignmentID", authTeacher, classController.deleteAssignment);
+router.delete(
+  "/:classID/assignments/:assignmentID",
+  authTeacher,
+  classController.deleteAssignment
+);
 
-router.get("/:classID/assignments", authTeacher, classController.getListAssignment);
+router.get(
+  "/:classID/assignments",
+  authTeacher,
+  classController.getListAssignment
+);
+
+router.put(
+  "/:classID/studentList",
+  authTeacher,
+  classController.updateStudentList
+);
+
+router.get(
+  "/:classID/studentList",
+  authTeacher,
+  classController.getStudentList
+);
 
 router.post("/:classID/user", (req, res) => classController.addUser(req, res));
 
