@@ -142,6 +142,7 @@ exports.getClassDetail = async (req, res) => {
   const userID = req.user.id;
 
   const requesterRole = await classService.checkIfUserIsInClass(userID, id);
+  let newMember = false;
 
   if (!requesterRole) {
     const cjc = req.query.cjc;
@@ -152,10 +153,11 @@ exports.getClassDetail = async (req, res) => {
       return;
     } else if (await classService.checkCJC(id, cjc)) {
       if (await classService.checkUserIsInWaitingList(userID, id)) {
-        classService.addUserToClass(userID, id, "teacher");
+        await classService.addUserToClass(userID, id, "teacher");
       } else {
-        classService.addUserToClass(userID, id, "student");
+        await classService.addUserToClass(userID, id, "student");
       }
+      newMember = true;
     } else {
       console.log("notin!");
       res
@@ -187,6 +189,7 @@ exports.getClassDetail = async (req, res) => {
     .then((data) => {
       if (data) {
         data.dataValues.requesterRole = requesterRole;
+        data.dataValues.newMember = newMember;
         res.send(data);
       } else {
         res.status(404).send({
@@ -206,7 +209,7 @@ exports.findAll = async (req, res) => {
 
   // Get token
   // Convert token to currentUserId
-  console.log("curUser", req.user);
+  //console.log("curUser", req.user);
   const currentUserId = req.user.id;
   if (!currentUserId) {
     res.status(400).send({
@@ -233,7 +236,7 @@ exports.findAll = async (req, res) => {
     });
     return;
   }
-  console.log(JSON.stringify(currentUser.classes));
+  //console.log(JSON.stringify(currentUser.classes));
   res.send(currentUser.classes);
   // let userClass = await currentUser.getClasses({
   //   attributes: ["id", "classname", "subject"],
@@ -344,8 +347,6 @@ exports.deleteAssignment = async (req, res) => {
 
 exports.getListAssignment = async (req, res) => {
   const classId = req.params.classID;
-
-  console.log("getclasslistass:", classId);
 
   const result = await classService.getListAssignment(classId);
   if (result) {
