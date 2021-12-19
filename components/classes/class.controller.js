@@ -317,6 +317,36 @@ exports.createAssignment = async (req, res) => {
   }
 };
 
+exports.updateStudentList = async (req, res) => {
+  const userID = req.user.id; //req.user.id
+  const classID = req.params.classID;
+  console.log("req.body", req.body);
+  const studentList = req.body.studentList;
+  const result = await classService.updateStudentList(classID, studentList);
+
+  if (result) {
+    res.status(200).json(result);
+  } else {
+    res.status(500).json({ message: "Cannot update student list!" });
+  }
+};
+
+exports.getStudentList = async (req, res) => {
+  const userID = req.user.id; //req.user.id
+  const classID = req.params.classID;
+  console.log("req.body", req.body);
+  const result = await classService.getStudentList(classID);
+  if (result) {
+    res.status(200).json(result);
+  } else {
+    res
+      .status(500)
+      .json({
+        message: "Cannot get student list of class id: " + classID + "!",
+      });
+  }
+};
+
 exports.updateAssignment = async (req, res) => {
   // const classId = req.params.classID;
   const assignment = {

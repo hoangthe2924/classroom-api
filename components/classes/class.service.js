@@ -2,6 +2,7 @@ const db = require("../../models");
 const Class = db.class;
 const User = db.user;
 const Assignment = db.assignment;
+const StudentFullname = db.studentFullname;
 const UserClass = db.user_class;
 const teacherWaitingList = db.teacherWaiting;
 const Op = db.Sequelize.Op;
@@ -20,7 +21,7 @@ module.exports = {
     if (!currentUserId) {
       return {
         status: 400,
-        message: {message: "Have you logged in yet?!"}
+        message: { message: "Have you logged in yet?!" },
       };
     }
     const currentUser = await User.findOne({
@@ -40,13 +41,13 @@ module.exports = {
     if (!currentUser) {
       return {
         status: 403,
-        message: {message: "You don't have permission!"}
+        message: { message: "You don't have permission!" },
       };
     }
     //console.log(JSON.stringify(currentUser.classes));
     return {
       status: 200,
-      message: currentUser.classes
+      message: currentUser.classes,
     };
     // let userClass = await currentUser.getClasses({
     //   attributes: ["id", "classname", "subject"],
@@ -164,7 +165,7 @@ module.exports = {
       //console.log(result);
       if(result){
         const newInfo = await Assignment.findByPk(assignment.id);
-        return newInfo? newInfo:false;
+        return newInfo ? newInfo : false;
       }
     } catch (error) {
       console.log(error);
@@ -190,6 +191,49 @@ module.exports = {
         where: { classId: classID },
         order: [["order", "ASC"]],
         attributes: ["id", "title", "point", "order"],
+      });
+    } catch (error) {
+      console.log(error);
+      return false;
+    }
+  },
+
+  async getStudentList(classID) {
+    try {
+      return StudentFullname.findAll({
+        where: { classId: classID },
+        attributes: ["id", "studentId", "fullName"],
+      });
+    } catch (error) {
+      console.log(error);
+      return false;
+    }
+  },
+
+  async updateStudentList(classID, studentList) {
+    try {
+      const cls = await Class.findByPk(classID);
+      for (let student of studentList) {
+        const existedStudent = await StudentFullname.findOne({
+          where: { classId: classID, studentId: student.studentId },
+        });
+        if (existedStudent) {
+          // update
+          existedStudent.update({ fullName: student.fullName });
+        }
+        // insert
+        else {
+          const newStudent = await StudentFullname.create({
+            studentId: student.studentId,
+            fullName: student.fullName,
+            classId: classID,
+          });
+          // newStudent.setClass(cls);
+        }
+      }
+      return StudentFullname.findAll({
+        where: { classId: classID },
+        attributes: ["id", "studentId", "fullName"],
       });
     } catch (error) {
       console.log(error);
