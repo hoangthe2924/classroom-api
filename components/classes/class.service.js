@@ -163,7 +163,7 @@ module.exports = {
         { where: { id: assignment.id }, returning: true }
       );
       //console.log(result);
-      if(result){
+      if (result) {
         const newInfo = await Assignment.findByPk(assignment.id);
         return newInfo ? newInfo : false;
       }
@@ -200,10 +200,25 @@ module.exports = {
 
   async getStudentList(classID) {
     try {
-      return StudentFullname.findAll({
+      const actualStudentList = await StudentFullname.findAll({
         where: { classId: classID },
         attributes: ["id", "studentId", "fullName"],
       });
+
+      const res = await Promise.all(actualStudentList.map(async (student) => {
+        const extraInfo = await User.findOne({
+          where: { studentId: student.studentId },
+          attributes: ["username", "fullname"],
+        });
+        return {
+          ...student.dataValues,
+          fullName: {val: student.fullName,
+            extra: extraInfo
+          }
+        };
+      }));
+      
+      return res;
     } catch (error) {
       console.log(error);
       return false;
