@@ -12,6 +12,7 @@ const indexRouter = require("./routes/index");
 // const classesRouter = require('./components/classes')
 const classesRouter = require("./components/classes/index");
 const usersRouter = require("./components/users/index");
+const gradesRouter = require("./components/grades/index");
 const app = express();
 
 // view engine setup
@@ -27,9 +28,10 @@ app.use(express.static(path.join(__dirname, "public")));
 app.use(passport.initialize());
 
 app.use("/", indexRouter);
-// app.use("/users", usersRouter);
 app.use("/classes", passport.authenticate('jwt',{session: false}), classesRouter);
 app.use("/users", usersRouter);
+app.use("/grades", passport.authenticate('jwt',{session: false}), gradesRouter);
+
 
 // // catch 404 and forward to error handler
 // app.use(function (req, res, next) {

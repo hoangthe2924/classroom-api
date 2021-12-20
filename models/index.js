@@ -28,6 +28,8 @@ db.studentFullname = require("./studentFullname.model.js")(
   sequelize,
   Sequelize
 );
+db.grade = require("./grade.model.js")(sequelize, Sequelize);
+
 
 db.class.belongsTo(db.user, { foreignKey: "ownerId" });
 db.user.hasMany(db.class, { foreignKey: "ownerId", as: "owner" });
@@ -65,5 +67,12 @@ db.user.hasMany(db.user_class);
 db.user_class.belongsTo(db.user);
 db.class.hasMany(db.user_class);
 db.user_class.belongsTo(db.class);
+
+
+db.grade.belongsTo(db.studentFullname, { foreignKey: "studentIdFk" });
+db.studentFullname.hasMany(db.grade, { foreignKey: "studentIdFk", as: "student" });
+
+db.grade.belongsTo(db.assignment, { foreignKey: "assignmentId" });
+db.assignment.hasMany(db.grade, { foreignKey: "assignmentId", as: "assignment" });
 
 module.exports = db;
