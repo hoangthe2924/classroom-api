@@ -22,9 +22,11 @@ exports.getStudentGrades = async (req, res) => {
 
 exports.updateStudentGrades = async (req, res) => {
   const assignmentID = req.params.asssignmentID;
+  const classId = req.query.classID;
+
   console.log("grading", req.body);
   const studentGrades = req.body.studentList;
-  const result = await gradeService.updateStudentGrades(assignmentID, studentGrades);
+  const result = await gradeService.updateStudentGrades(assignmentID,classId, studentGrades);
 
   if (result) {
     res.status(200).json(result);

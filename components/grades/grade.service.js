@@ -21,13 +21,14 @@ module.exports = {
     }
   },
 
-  async updateStudentGrades(assignmentID, studentGrades) {
+  async updateStudentGrades(assignmentID,classId, studentGrades) {
     try {
       for (let grade of studentGrades) {
         if (!grade[assignmentID]) continue;
         const studentIdFk = await StudentFullname.findOne({
           where: {
-            studentId: grade.studentId
+            studentId: grade.studentId,
+            classId: classId
           }
         })
         const existedGrade = await Grade.findOne({
