@@ -16,6 +16,10 @@ module.exports = (sequelize, Sequelize) => {
       order: {
         type: Sequelize.INTEGER,
       },
+      finalize: {
+        type: Sequelize.BOOLEAN,
+        defaultValue: false
+      },
     });
   
     return Assignment;

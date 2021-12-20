@@ -1,18 +1,19 @@
+const { where } = require("sequelize/dist");
 const db = require("../../models");
-const Class = db.class;
+const { finalizeGrades } = require("./grade.controller");
+const Assignment = db.assignment;
 const User = db.user;
 const Grade = db.grade;
 const StudentFullname = db.studentFullname;
-const UserClass = db.user_class;
-const teacherWaitingList = db.teacherWaiting;
-const Op = db.Sequelize.Op;
+const { Sequelize } = require("sequelize");
+
 
 module.exports = {
   async getStudentGrades(assignmentID) {
     try {
       return Grade.findAll({
         where: { assignmentId: assignmentID },
-        attributes: ["grade" ,"studentIdFk", "assignmentId"],
+        attributes: ["grade", "studentIdFk", "assignmentId"],
       });
     } catch (error) {
       console.log(error);
@@ -54,4 +55,23 @@ module.exports = {
       return false;
     }
   },
+
+  async finalizeGrades(assignmentID) {
+    try {
+      console.log(assignmentID)
+      return Assignment.update(
+        { finalize: Sequelize.literal('NOT finalize') },
+        {
+          where:
+          {
+            id: assignmentID
+          }
+        },
+      )
+    } catch (error) {
+      console.log(error);
+      return false;
+    }
+  },
+
 };

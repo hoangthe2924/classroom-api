@@ -16,4 +16,10 @@ router.put(
   gradeController.updateStudentGrades
 );
 
+router.put(
+  "/:asssignmentID/finalize",
+  authTeacher,
+  gradeController.finalizeGrades
+);
+
 module.exports = router;

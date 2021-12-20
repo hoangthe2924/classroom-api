@@ -32,3 +32,18 @@ exports.updateStudentGrades = async (req, res) => {
     res.status(500).json({ message: "Cannot update student grades!" });
   }
 };
+
+exports.finalizeGrades = async (req, res) => {
+  const assignmentID = req.params.asssignmentID;
+  console.log("grading", req.body);
+  const result = await gradeService.finalizeGrades(assignmentID);
+  if (result) {
+    res.status(200).json(result);
+  } else {
+    res
+      .status(500)
+      .json({
+        message: "Cannot get change finalize state of assignment id: " + assignmentID + "!",
+      });
+  }
+};

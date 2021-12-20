@@ -182,7 +182,7 @@ exports.getClassDetail = async (req, res) => {
       {
         model: Assignment,
         as: "assignments",
-        attributes: ["id", "title", "point", "order"],
+        attributes: ["id", "title", "point", "order", "finalize"],
       },
     ],
   })
