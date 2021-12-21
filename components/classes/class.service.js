@@ -234,13 +234,13 @@ module.exports = {
         });
         if (existedStudent) {
           // update
-          existedStudent.update({ fullName: student.fullName });
+          existedStudent.update({ fullName: student.fullName.val });
         }
         // insert
         else {
           const newStudent = await StudentFullname.create({
             studentId: student.studentId,
-            fullName: student.fullName,
+            fullName: student.fullName.val,
             classId: classID,
           });
           // newStudent.setClass(cls);
