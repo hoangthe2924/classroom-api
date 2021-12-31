@@ -1,4 +1,5 @@
 const db = require("../../models");
+const classModel = require("../../models/class.model");
 const Class = db.class;
 const User = db.user;
 const Assignment = db.assignment;
@@ -60,6 +61,12 @@ module.exports = {
     //   attributes: ["id", "classname", "subject"],
     // });
     // console.log("ss", JSON.stringify(classes));
+  },
+
+  async getClassIdByCJC(cjc){
+    const cls = await Class.findOne({where: {cjc: cjc}});
+
+    return cls === null ? null:cls.id;
   },
 
   async checkAlreadyEnrollment(email, classID) {
