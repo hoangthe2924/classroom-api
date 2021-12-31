@@ -317,6 +317,25 @@ exports.createAssignment = async (req, res) => {
   }
 };
 
+exports.checkAvailableClass = async (req,res) => {
+  const cjc = req.params.cjc;
+  const userId = req.user.id;
+
+  const classId = await classService.getClassIdByCJC(cjc);
+
+  if(!classId){
+    res.status(404).json({message: "Class doesn't exist!" });
+    return;
+  }
+
+  const userIsInClass = await classService.checkIfUserIsInClass(userId, classId);
+  if(!userIsInClass){
+    res.status(200).json({classId, cjc});
+  }else{
+    res.status(404).json({message: "You have been in this class already!" });
+  }
+}
+
 exports.updateStudentList = async (req, res) => {
   const userID = req.user.id; //req.user.id
   const classID = req.params.classID;
