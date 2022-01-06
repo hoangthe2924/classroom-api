@@ -75,4 +75,15 @@ db.studentFullname.hasMany(db.grade, { foreignKey: "studentIdFk", as: "student" 
 db.grade.belongsTo(db.assignment, { foreignKey: "assignmentId" });
 db.assignment.hasMany(db.grade, { foreignKey: "assignmentId", as: "assignment" });
 
+db.studentFullname.belongsToMany(db.assignment, {
+  through: db.grade,
+  foreignKey: 'studentIdFk', 
+  as: "students",
+});
+db.assignment.belongsToMany(db.studentFullname, {
+  through: db.grade,
+  foreignKey: 'assignmentId', 
+  as: "assignmentGrade",
+});
+
 module.exports = db;

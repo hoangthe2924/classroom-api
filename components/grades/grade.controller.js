@@ -49,3 +49,17 @@ exports.finalizeGrades = async (req, res) => {
       });
   }
 };
+
+exports.getStudentGradeDetail = async (req, res) => {
+  const studentId = req.query.studentId;
+  const classId = req.query.classId;
+
+  const result = await gradeService.getStudentGradeDetail(studentId, classId);
+  if(result === false){
+    res.status(404).json({message: "Something went wrongg!"});
+  }else if (result === null){
+    res.status(500).json({message: "Resource is not available!"});
+  }else{
+    res.status(200).json(result);
+  }
+};

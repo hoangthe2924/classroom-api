@@ -75,4 +75,27 @@ module.exports = {
     }
   },
 
+  async getStudentGradeDetail(studentId, classId){
+    try {
+      const res = await StudentFullname.findOne({
+        where: {studentId: studentId, classId: classId},
+        include: [{
+          model: Assignment,
+          as: "students",
+          attributes: ["id", "title", "point", "order", "finalize"],
+          through: {
+            attributes: ["grade"],
+          },
+          where: { finalize: 1 }
+        }],
+        order: [["students", "order", "ASC"]],
+      });
+
+      return res;
+    } catch (error) {
+      console.log(error);
+      return false;
+    }  
+  },
+
 };
