@@ -30,9 +30,8 @@ db.studentFullname = require("./studentFullname.model.js")(
 );
 db.grade = require("./grade.model.js")(sequelize, Sequelize);
 
-
-db.class.belongsTo(db.user, { foreignKey: "ownerId" });
-db.user.hasMany(db.class, { foreignKey: "ownerId", as: "owner" });
+db.class.belongsTo(db.user, { foreignKey: "ownerId", as: "owner" });
+db.user.hasMany(db.class, { foreignKey: "ownerId", as: "classesOwned" });
 
 db.teacherWaiting.belongsTo(db.class, { foreignKey: "classId" });
 db.class.hasMany(db.teacherWaiting, {
@@ -41,12 +40,12 @@ db.class.hasMany(db.teacherWaiting, {
 });
 
 db.assignment.belongsTo(db.class, { foreignKey: "classId" });
-db.assignment.belongsTo(db.user, { foreignKey: "creatorId" });
+db.assignment.belongsTo(db.user, { foreignKey: "creatorId", as: "creator" });
 db.class.hasMany(db.assignment, {
   foreignKey: "classId",
   as: "assignments",
 });
-db.user.hasMany(db.assignment, { foreignKey: "creatorId", as: "creator" });
+db.user.hasMany(db.assignment, { foreignKey: "creatorId" });
 
 db.studentFullname.belongsTo(db.class, { foreignKey: "classId" });
 db.class.hasMany(db.studentFullname, {
@@ -68,21 +67,30 @@ db.user_class.belongsTo(db.user);
 db.class.hasMany(db.user_class);
 db.user_class.belongsTo(db.class);
 
+db.grade.belongsTo(db.studentFullname, {
+  foreignKey: "studentIdFk",
+  as: "student",
+});
+db.studentFullname.hasMany(db.grade, {
+  foreignKey: "studentIdFk",
+});
 
-db.grade.belongsTo(db.studentFullname, { foreignKey: "studentIdFk" });
-db.studentFullname.hasMany(db.grade, { foreignKey: "studentIdFk", as: "student" });
-
-db.grade.belongsTo(db.assignment, { foreignKey: "assignmentId" });
-db.assignment.hasMany(db.grade, { foreignKey: "assignmentId", as: "assignment" });
+db.grade.belongsTo(db.assignment, {
+  foreignKey: "assignmentId",
+  as: "assignment",
+});
+db.assignment.hasMany(db.grade, {
+  foreignKey: "assignmentId",
+});
 
 db.studentFullname.belongsToMany(db.assignment, {
   through: db.grade,
-  foreignKey: 'studentIdFk', 
+  foreignKey: "studentIdFk",
   as: "students",
 });
 db.assignment.belongsToMany(db.studentFullname, {
   through: db.grade,
-  foreignKey: 'assignmentId', 
+  foreignKey: "assignmentId",
   as: "assignmentGrade",
 });
 
