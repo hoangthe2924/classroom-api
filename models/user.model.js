@@ -27,6 +27,14 @@ module.exports = (sequelize, Sequelize) => {
         type: Sequelize.INTEGER,
         unique: true,
       },
+      isAdmin: {
+        type: Sequelize.BOOLEAN,
+        defaultValue: false,
+      },
+      status: {
+        type: Sequelize.BOOLEAN,
+        defaultValue: true,
+      },
     },
     {
       scopes: {

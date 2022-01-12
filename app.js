@@ -28,10 +28,17 @@ app.use(express.static(path.join(__dirname, "public")));
 app.use(passport.initialize());
 
 app.use("/", indexRouter);
-app.use("/classes", passport.authenticate('jwt',{session: false}), classesRouter);
+app.use(
+  "/classes",
+  passport.authenticate("jwt", { session: false }),
+  classesRouter
+);
 app.use("/users", usersRouter);
-app.use("/grades", passport.authenticate('jwt',{session: false}), gradesRouter);
-
+app.use(
+  "/grades",
+  passport.authenticate("jwt", { session: false }),
+  gradesRouter
+);
 
 // // catch 404 and forward to error handler
 // app.use(function (req, res, next) {
