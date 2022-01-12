@@ -7,6 +7,8 @@
 var app = require("../app");
 var debug = require("debug")("classroom-api:server");
 var http = require("http");
+const { addUser, removeUser, findOnlineUsers} = require("../user");
+const { Socket } = require("socket.io");
 
 /**
  * Get port from environment and store in Express.
@@ -14,12 +16,17 @@ var http = require("http");
 
 var port = normalizePort(process.env.PORT || "7000");
 app.set("port", port);
-
 /**
  * Create HTTP server.
  */
 
 var server = http.createServer(app);
+var io = require('socket.io')(server,{
+  cors: {
+    origin: "http://localhost:3000",
+    methods: ["GET", "POST"]
+  }
+});
 
 /**
  * Listen on provided port, on all network interfaces.
@@ -28,6 +35,35 @@ var server = http.createServer(app);
 server.listen(port);
 server.on("error", onError);
 server.on("listening", onListening);
+
+io.on('connection', (socket) => { /* socket object may be used to send specific messages to the new connected client */
+  socket.on('join notification', (token) => {
+    addUser({ socketId: socket.id, token });
+  });
+ 
+  socket.on('logout', () => {
+    removeUser(socket.id)
+  });
+
+  socket.on('finalize grade', async (classId) => {
+    const onlineUsers = await findOnlineUsers(classId);
+    console.log('????');
+    console.log(onlineUsers);
+    onlineUsers.forEach(user => {
+      console.log(user);
+      io.to(user.socketId).emit('new notification');
+    });
+  });
+  // socket.on('grade review reply'), (token) => {
+
+  // });
+  // socket.on('grade review request'), (token) => {
+
+  // });
+  // socket.on('grade review final'), (token) => {
+
+  // });
+});
 
 /**
  * Normalize a port into a number, string, or false.
