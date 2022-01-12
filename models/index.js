@@ -31,6 +31,7 @@ db.studentFullname = require("./studentFullname.model.js")(
 db.grade = require("./grade.model.js")(sequelize, Sequelize);
 db.gradeReview = require("./gradeReview.model.js")(sequelize, Sequelize);
 db.commentGradeReview = require("./commentGradeDetail.model.js")(sequelize, Sequelize);
+db.notification = require("./notification.model.js")(sequelize, Sequelize);
 
 
 //relationship
@@ -107,5 +108,14 @@ db.user.hasMany(db.commentGradeReview, {foreignKey: "userId", as: "userCommentLi
 
 db.commentGradeReview.belongsTo(db.gradeReview, {foreignKey: "gradeReviewId"});
 db.gradeReview.hasMany(db.commentGradeReview, {foreignKey: "gradeReviewId", as: "gdCommentList"});
+
+db.notification.belongsTo(db.user, { foreignKey: "from", as: "fromUser"  });
+db.user.hasMany(db.notification, { foreignKey: "from"});
+db.notification.belongsTo(db.user, { foreignKey: "to", as: "toUser"  });
+db.user.hasMany(db.notification, { foreignKey: "to"});
+
+db.notification.belongsTo(db.class, { foreignKey: "classId" , as: "classNotification" });
+db.class.hasMany(db.notification, { foreignKey: "classId"});
+
 
 module.exports = db;
