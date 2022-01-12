@@ -1,3 +1,4 @@
+const { user } = require("../../models");
 const db = require("../../models");
 const Class = db.class;
 const User = db.user;
@@ -55,6 +56,95 @@ exports.getStudentGradeDetail = async (req, res) => {
   const classId = req.query.classId;
 
   const result = await gradeService.getStudentGradeDetail(studentId, classId);
+  if(result === false){
+    res.status(404).json({message: "Something went wrongg!"});
+  }else if (result === null){
+    res.status(500).json({message: "Resource is not available!"});
+  }else{
+    res.status(200).json(result);
+  }
+};
+
+exports.createGradeReview = async (req, res) => {
+  if(!req.user.studentId){
+    res.status(203).json({message: "You haven't mapped this account with your studentID!"});
+    return;
+  }
+  const userId = req.user.id;
+  const assignmentId = req.params.assignmentID;
+  const newGradeReview = {
+    expectedGrade: req.body.expectedGrade,
+    reviewMessage: req.body.message,
+  };
+
+  const result = await gradeService.createGradeReviewRequest(assignmentId, userId, newGradeReview);
+  if(result === false){
+    res.status(404).json({message: "Cannot create new grade review request!"});
+  }else{
+    res.status(201).json(result);
+  }
+};
+
+exports.changeGradeReviewStatus = async (req, res) => {
+  const gradeReviewId = req.body.gradeReviewId;
+  const status = req.body.status;
+
+  const result = await gradeService.changeGradeReviewRequestStatus(gradeReviewId, status);
+  if(!result){
+    res.status(404).json({message: `${status} grade review fail!`});
+  }else{
+    res.status(201).json(result);
+  }
+};
+
+exports.getGradeReviewDetail = async (req, res) => {
+  const assignmentId = req.params.assignmentID;
+  const studentId = req.query.studentID;
+
+  const result = await gradeService.getGradeReviewDetail(studentId, assignmentId);
+  if(result === false){
+    res.status(404).json({message: "Something went wrongg!"});
+  }else if (result === null){
+    res.status(500).json({message: "Resource is not available!"});
+  }else{
+    res.status(200).json(result);
+  }
+};
+
+exports.commentOnGradeReviewDetail = async (req, res) => {
+  const userId = req.user.id;
+  const gradeReviewId = req.body.gradeReviewId;
+  const newGRcomment = {
+    content: req.body.comment,
+  };
+  console.log(gradeReviewId);
+
+  const result = await gradeService.createGradeReviewComment(userId, gradeReviewId, newGRcomment);
+  if(result === false){
+    res.status(404).json({message: "Cannot create new grade review comment!"});
+  }else{
+    res.status(201).json(result);
+  }
+};
+
+exports.getListGradeReview = async (req, res) => {
+  const classId = req.query.classID;
+
+  const result = await gradeService.getListGradeReview(classId);
+  if(result === false){
+    res.status(404).json({message: "Something went wrongg!"});
+  }else if (result === null){
+    res.status(500).json({message: "Resource is not available!"});
+  }else{
+    res.status(200).json(result);
+  }
+};
+
+exports.getGradeReviewSummary = async (req, res) => {
+  const studentId = req.query.studentID;
+  const assignmentId = req.query.assignmentID;
+
+  const result = await gradeService.getGradeReviewSummary(studentId, assignmentId);
   if(result === false){
     res.status(404).json({message: "Something went wrongg!"});
   }else if (result === null){
