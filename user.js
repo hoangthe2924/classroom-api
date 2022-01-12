@@ -51,7 +51,7 @@ const removeUser = (socketId) => {
     }
 }
 
-const findOnlineUsers = async (classId) => {
+const findOnlineStudents = async (classId) => {
     const usersInClass = await user_class.findAll({
         where: { classId: classId, role: 'student' },
         attributes: ["userId"],
@@ -79,7 +79,59 @@ const findOnlineUsers = async (classId) => {
     return onlineUsers;
 }
 
+const findOnlineTeachers = async (classId) => {
+    const usersInClass = await user_class.findAll({
+        where: { classId: classId, role: 'teacher' },
+        attributes: ["userId"],
+        include: [
+            {
+              model: User,
+              attributes: ["id", "username"]
+            }
+          ],
+      });
+    var onlineUsers = [];
+    if (usersInClass.length != 0) {
+        users.forEach(user => {
+            const check = usersInClass.some((classUser) => user.username === classUser.user.username)
+            if (check)
+            {
+                console.log("***");
+                console.log(check);
+                console.log(user);
+                onlineUsers.push(user);
+            }
+        });
+    }
+    console.log(onlineUsers);
+    return onlineUsers;
+}
+
+const findOnlineStudentById = async (studentId) => {
+    const userFound = await User.findOne({
+        where: { studentId: studentId },
+        attributes: ["username"],
+      });
+    var onlineUsers = [];
+    if (userFound.length != 0) {
+        users.forEach(user => {
+            const check = (user.username === userFound.username)
+            if (check)
+            {
+                console.log("***");
+                console.log(check);
+                console.log(user);
+                onlineUsers.push(user);
+            }
+        });
+    }
+    console.log(onlineUsers);
+    return onlineUsers;
+}
+
 module.exports = {
     addUser, removeUser,
-    findOnlineUsers,
+    findOnlineStudents,
+    findOnlineTeachers,
+    findOnlineStudentById
 };
