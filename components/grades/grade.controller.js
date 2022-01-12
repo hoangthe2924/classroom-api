@@ -3,6 +3,8 @@ const db = require("../../models");
 const Class = db.class;
 const User = db.user;
 const Assignment = db.assignment;
+const User_class = db.user_class;
+
 const Op = db.Sequelize.Op;
 const gradeService = require("./grade.service");
 
@@ -38,9 +40,23 @@ exports.updateStudentGrades = async (req, res) => {
 
 exports.finalizeGrades = async (req, res) => {
   const assignmentID = req.params.asssignmentID;
+  const classId = req.query.classID;
+  const fromUser = req.user.id;
+
   console.log("grading", req.body);
   const result = await gradeService.finalizeGrades(assignmentID);
   if (result) {
+    const toUserList = await User_class.findAll({
+      where: { 
+        classId: classId,
+        role: "student",
+
+       },
+      attributes: ["userId"],
+    });
+    toUserList.forEach( async (toUser) => {
+      await gradeService.createNotifications('finalize_grade',fromUser,toUser.userId,classId)
+    });
     res.status(200).json(result);
   } else {
     res
@@ -151,5 +167,17 @@ exports.getGradeReviewSummary = async (req, res) => {
     res.status(500).json({message: "Resource is not available!"});
   }else{
     res.status(200).json(result);
+  }
+};
+
+exports.getNotifications = async (req, res) => {
+  const userId = req.user.id;
+
+  const result = await gradeService.getNotifications(userId);
+  if(result){
+    res.status(200).json(result);
+  }
+  else{
+    res.status(200).json({});
   }
 };

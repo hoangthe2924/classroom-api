@@ -24,4 +24,6 @@ router.get("/teacherGradeReviewList", authTeacher, gradeController.getListGradeR
 
 router.get("/gradeReviewSummary", gradeController.getGradeReviewSummary);
 
+router.get("/notifications", gradeController.getNotifications);
+
 module.exports = router;
