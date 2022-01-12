@@ -30,12 +30,13 @@ db.studentFullname = require("./studentFullname.model.js")(
 );
 db.grade = require("./grade.model.js")(sequelize, Sequelize);
 db.gradeReview = require("./gradeReview.model.js")(sequelize, Sequelize);
-db.commentGradeReview = require("./commentGradeDetail.model.js")(sequelize, Sequelize);
+db.commentGradeReview = require("./commentGradeDetail.model.js")(
+  sequelize,
+  Sequelize
+);
 
-
-//relationship
-db.class.belongsTo(db.user, { foreignKey: "ownerId" });
-db.user.hasMany(db.class, { foreignKey: "ownerId", as: "owner" });
+db.class.belongsTo(db.user, { foreignKey: "ownerId", as: "owner" });
+db.user.hasMany(db.class, { foreignKey: "ownerId", as: "classesOwned" });
 
 db.teacherWaiting.belongsTo(db.class, { foreignKey: "classId" });
 db.class.hasMany(db.teacherWaiting, {
@@ -44,12 +45,12 @@ db.class.hasMany(db.teacherWaiting, {
 });
 
 db.assignment.belongsTo(db.class, { foreignKey: "classId" });
-db.assignment.belongsTo(db.user, { foreignKey: "creatorId" });
+db.assignment.belongsTo(db.user, { foreignKey: "creatorId", as: "creator" });
 db.class.hasMany(db.assignment, {
   foreignKey: "classId",
   as: "assignments",
 });
-db.user.hasMany(db.assignment, { foreignKey: "creatorId", as: "creator" });
+db.user.hasMany(db.assignment, { foreignKey: "creatorId" });
 
 db.studentFullname.belongsTo(db.class, { foreignKey: "classId" });
 db.class.hasMany(db.studentFullname, {
@@ -71,22 +72,31 @@ db.user_class.belongsTo(db.user);
 db.class.hasMany(db.user_class);
 db.user_class.belongsTo(db.class);
 
+db.grade.belongsTo(db.studentFullname, {
+  foreignKey: "studentIdFk",
+  as: "student",
+});
+db.studentFullname.hasMany(db.grade, {
+  foreignKey: "studentIdFk",
+});
 
-db.grade.belongsTo(db.studentFullname, { foreignKey: "studentIdFk" });
-db.studentFullname.hasMany(db.grade, { foreignKey: "studentIdFk", as: "student" });
-
-db.grade.belongsTo(db.assignment, { foreignKey: "assignmentId" });
-db.assignment.hasMany(db.grade, { foreignKey: "assignmentId", as: "assignment" });
+db.grade.belongsTo(db.assignment, {
+  foreignKey: "assignmentId",
+  as: "assignment",
+});
+db.assignment.hasMany(db.grade, {
+  foreignKey: "assignmentId",
+});
 
 db.studentFullname.belongsToMany(db.assignment, {
   through: db.grade,
-  foreignKey: 'studentIdFk', 
+  foreignKey: "studentIdFk",
   as: "assignments",
 });
 
 // db.assignment.belongsToMany(db.studentFullname, {
 //   through: db.grade,
-//   foreignKey: 'assignmentId', 
+//   foreignKey: 'assignmentId',
 //   as: "assignmentGrade",
 // });
 
@@ -102,10 +112,18 @@ db.assignment.hasMany(db.gradeReview, {
   as: "gradeReviewList",
 });
 
-db.commentGradeReview.belongsTo(db.user, {foreignKey: "userId"});
-db.user.hasMany(db.commentGradeReview, {foreignKey: "userId", as: "userCommentList"});
+db.commentGradeReview.belongsTo(db.user, { foreignKey: "userId" });
+db.user.hasMany(db.commentGradeReview, {
+  foreignKey: "userId",
+  as: "userCommentList",
+});
 
-db.commentGradeReview.belongsTo(db.gradeReview, {foreignKey: "gradeReviewId"});
-db.gradeReview.hasMany(db.commentGradeReview, {foreignKey: "gradeReviewId", as: "gdCommentList"});
+db.commentGradeReview.belongsTo(db.gradeReview, {
+  foreignKey: "gradeReviewId",
+});
+db.gradeReview.hasMany(db.commentGradeReview, {
+  foreignKey: "gradeReviewId",
+  as: "gdCommentList",
+});
 
 module.exports = db;

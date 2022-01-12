@@ -9,13 +9,24 @@ const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 const db = require("../../models");
 const User = db.user;
 
-router.get("/", (req, res) => users.findAll(req, res));
+router.get("/", passport.authenticate("jwt", { session: false }), (req, res) =>
+  users.findAll(req, res)
+);
+
+router.get(
+  "/admins",
+  passport.authenticate("jwt", { session: false }),
+  (req, res) => users.findAllAdmins(req, res)
+);
 
 /* POST login */
 router.post(
   "/login",
   passport.authenticate("local", { session: false }),
   function (req, res, next) {
+    if (req.authInfo.code === -1) {
+      return res.status(403).send({ message: "Your account has been banned!" });
+    }
     console.log("login success");
     const token = jwt.sign(
       { username: req.body.username },
@@ -33,6 +44,12 @@ router.post(
 
 /* POST register */
 router.post("/register", (req, res, next) => users.create(req, res));
+
+router.post(
+  "/addAdmin",
+  passport.authenticate("jwt", { session: false }),
+  (req, res, next) => users.addAdmin(req, res)
+);
 
 /* Protected domain */
 router.get(
@@ -78,12 +95,22 @@ router.post("/google/login", async (req, res) => {
   });
 });
 
-router.get("/:id", (req, res) => users.findOne(req, res));
+router.get(
+  "/:id",
+  passport.authenticate("jwt", { session: false }),
+  (req, res) => users.findOne(req, res)
+);
 
 router.put(
   "/info",
   passport.authenticate("jwt", { session: false }),
   (req, res) => users.update(req, res)
+);
+
+router.put(
+  "/banUser",
+  passport.authenticate("jwt", { session: false }),
+  (req, res) => users.banUser(req, res)
 );
 
 module.exports = router;

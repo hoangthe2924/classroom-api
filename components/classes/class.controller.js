@@ -144,7 +144,7 @@ exports.getClassDetail = async (req, res) => {
   const requesterRole = await classService.checkIfUserIsInClass(userID, id);
   let newMember = false;
 
-  if (!requesterRole) {
+  if (!requesterRole && !req.user.isAdmin) {
     const cjc = req.query.cjc;
     if (typeof cjc === "undefined") {
       res
@@ -188,7 +188,9 @@ exports.getClassDetail = async (req, res) => {
   })
     .then((data) => {
       if (data) {
-        data.dataValues.requesterRole = requesterRole;
+        data.dataValues.requesterRole = req.user.isAdmin
+          ? "admin"
+          : requesterRole;
         data.dataValues.newMember = newMember;
         res.send(data);
       } else {
@@ -216,6 +218,23 @@ exports.findAll = async (req, res) => {
       message: "Have you logged in yet?!",
     });
   }
+
+  if (req.user.isAdmin) {
+    const classes = await Class.findAll({
+      attributes: ["id", "classname", "subject", "createdAt"],
+      include: [
+        {
+          model: User,
+          as: "owner",
+          attributes: ["id", "username"],
+        },
+      ],
+      order: [["createdAt", "DESC"]],
+    });
+    res.send(classes);
+    return;
+  }
+
   const currentUser = await User.findOne({
     where: { id: currentUserId },
     attributes: ["id", "username"],
@@ -317,24 +336,27 @@ exports.createAssignment = async (req, res) => {
   }
 };
 
-exports.checkAvailableClass = async (req,res) => {
+exports.checkAvailableClass = async (req, res) => {
   const cjc = req.params.cjc;
   const userId = req.user.id;
 
   const classId = await classService.getClassIdByCJC(cjc);
 
-  if(!classId){
-    res.status(404).json({message: "Class doesn't exist!" });
+  if (!classId) {
+    res.status(404).json({ message: "Class doesn't exist!" });
     return;
   }
 
-  const userIsInClass = await classService.checkIfUserIsInClass(userId, classId);
-  if(!userIsInClass){
-    res.status(200).json({classId, cjc});
-  }else{
-    res.status(404).json({message: "You have been in this class already!" });
+  const userIsInClass = await classService.checkIfUserIsInClass(
+    userId,
+    classId
+  );
+  if (!userIsInClass) {
+    res.status(200).json({ classId, cjc });
+  } else {
+    res.status(404).json({ message: "You have been in this class already!" });
   }
-}
+};
 
 exports.updateStudentList = async (req, res) => {
   const userID = req.user.id; //req.user.id
@@ -358,11 +380,9 @@ exports.getStudentList = async (req, res) => {
   if (result) {
     res.status(200).json(result);
   } else {
-    res
-      .status(500)
-      .json({
-        message: "Cannot get student list of class id: " + classID + "!",
-      });
+    res.status(500).json({
+      message: "Cannot get student list of class id: " + classID + "!",
+    });
   }
 };
 
