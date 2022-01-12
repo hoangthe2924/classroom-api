@@ -109,7 +109,7 @@ exports.changeGradeReviewStatus = async (req, res) => {
   if(!result){
     res.status(404).json({message: `${status} grade review fail!`});
   }else{
-    res.status(201).json(result);
+    res.status(201).json({message: `${status} grade review successfully!`});
   }
 };
 
