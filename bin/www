@@ -7,7 +7,7 @@
 var app = require("../app");
 var debug = require("debug")("classroom-api:server");
 var http = require("http");
-const { addUser, removeUser, findOnlineUsers} = require("../user");
+const { addUser, removeUser, findOnlineStudents, findOnlineTeachers, findOnlineStudentById } = require("../user");
 const { Socket } = require("socket.io");
 
 /**
@@ -21,7 +21,7 @@ app.set("port", port);
  */
 
 var server = http.createServer(app);
-var io = require('socket.io')(server,{
+var io = require('socket.io')(server, {
   cors: {
     origin: "http://localhost:3000",
     methods: ["GET", "POST"]
@@ -40,13 +40,13 @@ io.on('connection', (socket) => { /* socket object may be used to send specific 
   socket.on('join notification', (token) => {
     addUser({ socketId: socket.id, token });
   });
- 
+
   socket.on('logout', () => {
     removeUser(socket.id)
   });
 
   socket.on('finalize grade', async (classId) => {
-    const onlineUsers = await findOnlineUsers(classId);
+    const onlineUsers = await findOnlineStudents(classId);
     console.log('????');
     console.log(onlineUsers);
     onlineUsers.forEach(user => {
@@ -54,15 +54,37 @@ io.on('connection', (socket) => { /* socket object may be used to send specific 
       io.to(user.socketId).emit('new notification');
     });
   });
-  // socket.on('grade review reply'), (token) => {
+  socket.on('grade review request', async (classId) => {
+    const onlineUsers = await findOnlineTeachers(classId);
+    console.log('????');
+    console.log(onlineUsers);
+    onlineUsers.forEach(user => {
+      console.log(user);
+      io.to(user.socketId).emit('new notification');
+    });
+  });
+  socket.on('grade review reply', async (studentId) => {
+    const onlineUsers = await findOnlineStudentById(studentId);
+    console.log('????');
+    console.log(onlineUsers);
+    onlineUsers.forEach(user => {
+      console.log(user);
+      if (user.socketId!= socket.id)
+      {
+        io.to(user.socketId).emit('new notification');
+      }
+    });
+  });
 
-  // });
-  // socket.on('grade review request'), (token) => {
-
-  // });
-  // socket.on('grade review final'), (token) => {
-
-  // });
+  socket.on('grade review final', async (studentId) => {
+    const onlineUsers = await findOnlineStudentById(studentId);
+    console.log('????');
+    console.log(onlineUsers);
+    onlineUsers.forEach(user => {
+      console.log(user);
+      io.to(user.socketId).emit('new notification');
+    });
+  });
 });
 
 /**

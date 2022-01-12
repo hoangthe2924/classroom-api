@@ -1,9 +1,8 @@
 const { user } = require("../../models");
 const db = require("../../models");
-const Class = db.class;
-const User = db.user;
 const Assignment = db.assignment;
 const User_class = db.user_class;
+const GradeReview = db.gradeReview;
 
 const Op = db.Sequelize.Op;
 const gradeService = require("./grade.service");
@@ -97,6 +96,23 @@ exports.createGradeReview = async (req, res) => {
   if(result === false){
     res.status(404).json({message: "Cannot create new grade review request!"});
   }else{
+    const classId = await Assignment.findOne({
+      where: {
+        id: assignmentId
+      },
+      attributes: ["classId"],
+    })
+
+    const toUserList = await User_class.findAll({
+      where: { 
+        classId: classId.classId,
+        role: "teacher",
+       },
+      attributes: ["userId"],
+    });
+    toUserList.forEach( async (toUser) => {
+      await gradeService.createNotifications('grade_review_request',userId,toUser.userId,classId.classId)
+    });
     res.status(201).json(result);
   }
 };
@@ -104,11 +120,30 @@ exports.createGradeReview = async (req, res) => {
 exports.changeGradeReviewStatus = async (req, res) => {
   const gradeReviewId = req.body.gradeReviewId;
   const status = req.body.status;
+  const assignmentId = req.params.assignmentID;
+  const userId = req.user.id;
 
   const result = await gradeService.changeGradeReviewRequestStatus(gradeReviewId, status);
   if(!result){
     res.status(404).json({message: `${status} grade review fail!`});
   }else{
+    const classId = await Assignment.findOne({
+      where: {
+        id: assignmentId
+      },
+      attributes: ["classId"],
+    })
+
+    const toUser = await GradeReview.findOne({
+      where: { 
+        id: gradeReviewId,
+       },
+      attributes: ["userId"],
+    });
+    console.log(toUser)
+    if (toUser){
+      await gradeService.createNotifications('grade_review_final',userId,toUser.userId,classId.classId)
+    }
     res.status(201).json(result);
   }
 };
@@ -133,12 +168,31 @@ exports.commentOnGradeReviewDetail = async (req, res) => {
   const newGRcomment = {
     content: req.body.comment,
   };
+  const assignmentId = req.params.assignmentID;
+
   console.log(gradeReviewId);
 
   const result = await gradeService.createGradeReviewComment(userId, gradeReviewId, newGRcomment);
   if(result === false){
     res.status(404).json({message: "Cannot create new grade review comment!"});
   }else{
+    const classId = await Assignment.findOne({
+      where: {
+        id: assignmentId
+      },
+      attributes: ["classId"],
+    })
+
+    const toUser = await GradeReview.findOne({
+      where: { 
+        id: gradeReviewId,
+       },
+      attributes: ["userId"],
+    });
+    console.log(toUser)
+    if (toUser && toUser.userId !== userId){
+      await gradeService.createNotifications('grade_review_reply',userId,toUser.userId,classId.classId)
+    }
     res.status(201).json(result);
   }
 };
