@@ -3,8 +3,6 @@ const User = db.user;
 const Class = db.class;
 const Op = db.Sequelize.Op;
 const bcrypt = require("bcryptjs");
-const { off } = require("../../app");
-const { user } = require("../../models");
 
 // Create and Save a new User
 exports.create = (req, res) => {
