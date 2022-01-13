@@ -6,6 +6,9 @@ const Grade = db.grade;
 const StudentFullname = db.studentFullname;
 const GradeReview = db.gradeReview;
 const CommentGradeReview = db.commentGradeReview;
+const Notification = db.notification;
+const op = db.Sequelize.Op;
+const Class = db.class;
 const { Sequelize } = require("sequelize");
 
 module.exports = {
@@ -151,7 +154,7 @@ module.exports = {
 
   async changeGradeReviewRequestStatus(grID, status) {
     try {
-      return GradeReview.update({status: status},{where: {id: grID}});
+      return GradeReview.update({ status: status }, { where: { id: grID } });
     } catch (error) {
       console.log(error);
       return false;
@@ -184,8 +187,8 @@ module.exports = {
         include: [
           {
             model: Assignment,
-            attributes: ["id","title"],
-            where: {classId: classId}
+            attributes: ["id", "title"],
+            where: { classId: classId }
           },
           {
             model: User,
@@ -199,7 +202,7 @@ module.exports = {
     }
   },
 
-  async getGradeReviewSummary(studentId, assignmentId){
+  async getGradeReviewSummary(studentId, assignmentId) {
     try {
       return StudentFullname.findAll({
         where: { studentId: studentId },
@@ -220,4 +223,38 @@ module.exports = {
       return false;
     }
   },
+
+  createNotifications(type, from, to, classId) {
+    const newNotification = Notification.create({
+      type,
+      from,
+      to,
+      classId
+    });
+  },
+
+  async getNotifications(userId) {
+    const notifications = await Notification.findAll({
+      where: { to: userId},
+      include: [
+        {
+          model: User,
+          as: 'fromUser',
+          attributes: ["id", "fullname"],
+        },
+        {
+          model: Class,
+          as: "classNotification",
+          attributes: ["id", "className"],
+        },
+      ],
+      order: [['updatedAt', 'DESC']],
+    });
+    // notifications.forEach(notification => {
+
+    //   notification.message = 
+    // });
+    return notifications
+  }
+
 };
