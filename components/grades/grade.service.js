@@ -61,7 +61,7 @@ module.exports = {
     try {
       console.log(assignmentID)
       return Assignment.update(
-        { finalize: Sequelize.literal('NOT finalize') },
+        { finalize: 1 },
         {
           where:
           {
