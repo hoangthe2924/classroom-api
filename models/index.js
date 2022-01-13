@@ -36,6 +36,10 @@ db.commentGradeReview = require("./commentGradeDetail.model.js")(
   Sequelize
 );
 db.notification = require("./notification.model.js")(sequelize, Sequelize);
+db.resetPasswordToken = require("./resetPasswordToken.model.js")(
+  sequelize,
+  Sequelize
+);
 
 db.class.belongsTo(db.user, { foreignKey: "ownerId", as: "owner" });
 db.user.hasMany(db.class, { foreignKey: "ownerId", as: "classesOwned" });

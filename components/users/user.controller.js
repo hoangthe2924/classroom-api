@@ -3,6 +3,9 @@ const User = db.user;
 const Class = db.class;
 const Op = db.Sequelize.Op;
 const bcrypt = require("bcryptjs");
+const crypto = require("crypto");
+const { sendResetPasswordEmail } = require("./sendResetPasswordEmail");
+const ResetPasswordToken = db.resetPasswordToken;
 
 // Create and Save a new User
 exports.create = (req, res) => {
@@ -33,6 +36,64 @@ exports.create = (req, res) => {
         message: err.message || "Some error occurred while creating the User.",
       });
     });
+};
+
+exports.requestResetPassword = async (req, res) => {
+  // Validate request
+  if (!req.body.email) {
+    return res.status(400).send({
+      message: "Content can not be empty!",
+    });
+  }
+
+  const user = await User.findOne({
+    where: { email: req.body.email },
+  });
+  if (!user) return res.status(400).send("User with given email doesn't exist");
+  ResetPasswordToken.findOne({
+    where: { userId: user.id },
+  })
+    .then(async (tokenExisted) => {
+      if (!tokenExisted) {
+        console.log("Create token");
+        tokenExisted = await ResetPasswordToken.create({
+          userId: user.id,
+          token: crypto.randomBytes(32).toString("hex"),
+        });
+      }
+      const link =
+        process.env.FRONT_URL + `/password-reset/${tokenExisted.token}`;
+      const mailSent = sendResetPasswordEmail(req.body.email, link);
+      console.log("mailsent", mailSent);
+      res.send("Password reset link sent to your email address");
+    })
+    .catch((err) => {
+      res.status(500).send({
+        message: err.message || "Some error occurred in password reset!",
+      });
+    });
+};
+
+exports.resetPassword = async (req, res) => {
+  // Validate request
+  if (!req.body.password) {
+    return res.status(400).send({
+      message: "Content can not be empty!",
+    });
+  }
+
+  const user = await User.findByPk(req.params.userId);
+  if (!user) return res.status(400).send("User with given id doesn't exist");
+
+  const tokenExisted = await ResetPasswordToken.findOne({
+    where: { userId: req.params.userId, token: req.params.token },
+  });
+  if (!tokenExisted) return res.status(400).send("Invalid link or expired");
+
+  user.update({ password: bcrypt.hashSync(req.body.password, 10) });
+  await tokenExisted.destroy();
+
+  res.send("Password reset sucessfully.");
 };
 
 exports.addAdmin = (req, res) => {
