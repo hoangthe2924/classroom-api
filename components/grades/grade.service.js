@@ -1,12 +1,15 @@
 const { where } = require("sequelize/dist");
 const db = require("../../models");
-const { finalizeGrades } = require("./grade.controller");
 const Assignment = db.assignment;
 const User = db.user;
 const Grade = db.grade;
 const StudentFullname = db.studentFullname;
+const GradeReview = db.gradeReview;
+const CommentGradeReview = db.commentGradeReview;
+const Notification = db.notification;
+const op = db.Sequelize.Op;
+const Class = db.class;
 const { Sequelize } = require("sequelize");
-
 
 module.exports = {
   async getStudentGrades(assignmentID) {
@@ -21,16 +24,16 @@ module.exports = {
     }
   },
 
-  async updateStudentGrades(assignmentID,classId, studentGrades) {
+  async updateStudentGrades(assignmentID, classId, studentGrades) {
     try {
       for (let grade of studentGrades) {
         if (!grade[assignmentID]) continue;
         const studentIdFk = await StudentFullname.findOne({
           where: {
             studentId: grade.studentId,
-            classId: classId
-          }
-        })
+            classId: classId,
+          },
+        });
         const existedGrade = await Grade.findOne({
           where: { assignmentId: assignmentID, studentIdFk: studentIdFk.id },
         });
@@ -43,7 +46,7 @@ module.exports = {
           const newStudent = await Grade.create({
             studentIdFk: studentIdFk.id,
             assignmentId: assignmentID,
-            grade: grade[assignmentID]
+            grade: grade[assignmentID],
           });
         }
       }
@@ -59,43 +62,199 @@ module.exports = {
 
   async finalizeGrades(assignmentID) {
     try {
-      console.log(assignmentID)
+      console.log(assignmentID);
       return Assignment.update(
         { finalize: 1 },
         {
-          where:
-          {
-            id: assignmentID
-          }
-        },
-      )
+          where: {
+            id: assignmentID,
+          },
+        }
+      );
     } catch (error) {
       console.log(error);
       return false;
     }
   },
 
-  async getStudentGradeDetail(studentId, classId){
+  getStudentGradeDetail(studentId, classId) {
     try {
-      const res = await StudentFullname.findOne({
-        where: {studentId: studentId, classId: classId},
-        include: [{
-          model: Assignment,
-          as: "students",
-          attributes: ["id", "title", "point", "order", "finalize"],
-          through: {
-            attributes: ["grade"],
+      return StudentFullname.findOne({
+        where: { studentId: studentId, classId: classId },
+        include: [
+          {
+            model: Assignment,
+            as: "assignments",
+            attributes: ["id", "title", "point", "order", "finalize"],
+            through: {
+              attributes: ["grade"],
+            },
+            where: { finalize: 1 },
           },
-          where: { finalize: 1 }
-        }],
-        order: [["students", "order", "ASC"]],
+        ],
+        order: [["assignments", "order", "ASC"]],
       });
-
-      return res;
     } catch (error) {
       console.log(error);
       return false;
-    }  
+    }
   },
+
+  getGradeReviewDetail(studentId, assignmentId) {
+    try {
+      return User.findOne({
+        where: { studentId: studentId },
+        attributes: ["id", "fullName", "studentId"],
+        include: [
+          {
+            model: GradeReview,
+            as: "gradeReviewRequests",
+            attributes: ["id", "expectedGrade", "reviewMessage", "status"],
+            where: { assignmentId: assignmentId },
+            include: [
+              {
+                model: CommentGradeReview,
+                as: "gdCommentList",
+                attributes: ["id", "content", "createdAt"],
+                include: [
+                  {
+                    model: User,
+                    attributes: ["id", "fullName"],
+                  },
+                ][0],
+              },
+            ],
+          },
+        ],
+      });
+    } catch (error) {
+      console.log(error);
+      return false;
+    }
+  },
+
+  async createGradeReviewRequest(assignmentId, userID, newGRR) {
+    try {
+      const assignment = await Assignment.findByPk(assignmentId);
+      const user = await User.findByPk(userID);
+
+      if (assignment && user) {
+        const createdGradeReviewRequest = await GradeReview.create(newGRR);
+        createdGradeReviewRequest.setAssignment(assignment);
+        createdGradeReviewRequest.setUser(user);
+        return createdGradeReviewRequest;
+      } else {
+        return false;
+      }
+    } catch (error) {
+      console.log(error);
+      return false;
+    }
+  },
+
+  async changeGradeReviewRequestStatus(grID, status) {
+    try {
+      return GradeReview.update({ status: status }, { where: { id: grID } });
+    } catch (error) {
+      console.log(error);
+      return false;
+    }
+  },
+
+  async createGradeReviewComment(userID, gradeReviewId, newGRC) {
+    try {
+      const gradeReview = await GradeReview.findByPk(gradeReviewId);
+      const user = await User.findByPk(userID);
+
+      if (gradeReview && user) {
+        const createdGradeReviewComment = await CommentGradeReview.create(newGRC);
+        createdGradeReviewComment.setGradeReview(gradeReview);
+        createdGradeReviewComment.setUser(user);
+        return createdGradeReviewComment;
+      } else {
+        return false;
+      }
+    } catch (error) {
+      console.log(error);
+      return false;
+    }
+  },
+
+  async getListGradeReview(classId) {
+    try {
+      return GradeReview.findAll({
+        attributes: ["id", "expectedGrade", "reviewMessage", "status"],
+        include: [
+          {
+            model: Assignment,
+            attributes: ["id", "title"],
+            where: { classId: classId }
+          },
+          {
+            model: User,
+            attributes: ["id", "studentId", "fullName"],
+          },
+        ],
+      });
+    } catch (error) {
+      console.log(error);
+      return false;
+    }
+  },
+
+  async getGradeReviewSummary(studentId, assignmentId) {
+    try {
+      return StudentFullname.findAll({
+        where: { studentId: studentId },
+        attributes: ["id", "studentId", "fullName"],
+        include: [
+          {
+            model: Assignment,
+            as: "assignments",
+            attributes: ["id", "title"],
+            through: {
+              attributes: ["grade"],
+            },
+            where: { finalize: 1, id: assignmentId },
+          },
+        ],
+      });
+    } catch (error) {
+      return false;
+    }
+  },
+
+  createNotifications(type, from, to, classId) {
+    const newNotification = Notification.create({
+      type,
+      from,
+      to,
+      classId
+    });
+  },
+
+  async getNotifications(userId) {
+    const notifications = await Notification.findAll({
+      where: { to: userId},
+      include: [
+        {
+          model: User,
+          as: 'fromUser',
+          attributes: ["id", "fullname"],
+        },
+        {
+          model: Class,
+          as: "classNotification",
+          attributes: ["id", "className"],
+        },
+      ],
+      order: [['updatedAt', 'DESC']],
+    });
+    // notifications.forEach(notification => {
+
+    //   notification.message = 
+    // });
+    return notifications
+  }
 
 };

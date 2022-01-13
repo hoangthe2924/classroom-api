@@ -50,23 +50,12 @@ module.exports = {
       status: 200,
       message: currentUser.classes,
     };
-    // let userClass = await currentUser.getClasses({
-    //   attributes: ["id", "classname", "subject"],
-    // });
-    // console.log("uc", JSON.stringify(userClass));
-
-    // console.log(JSON.stringify(currentUser));
-    // let classes = await Class.findAll({
-    //   where: { ownerId: currentUserId },
-    //   attributes: ["id", "classname", "subject"],
-    // });
-    // console.log("ss", JSON.stringify(classes));
   },
 
-  async getClassIdByCJC(cjc){
-    const cls = await Class.findOne({where: {cjc: cjc}});
+  async getClassIdByCJC(cjc) {
+    const cls = await Class.findOne({ where: { cjc: cjc } });
 
-    return cls === null ? null:cls.id;
+    return cls === null ? null : cls.id;
   },
 
   async checkAlreadyEnrollment(email, classID) {
@@ -212,19 +201,19 @@ module.exports = {
         attributes: ["id", "studentId", "fullName"],
       });
 
-      const res = await Promise.all(actualStudentList.map(async (student) => {
-        const extraInfo = await User.findOne({
-          where: { studentId: student.studentId },
-          attributes: ["username", "fullname"],
-        });
-        return {
-          ...student.dataValues,
-          fullName: {val: student.fullName,
-            extra: extraInfo
-          }
-        };
-      }));
-      
+      const res = await Promise.all(
+        actualStudentList.map(async (student) => {
+          const extraInfo = await User.findOne({
+            where: { studentId: student.studentId },
+            attributes: ["username", "fullname"],
+          });
+          return {
+            ...student.dataValues,
+            fullName: { val: student.fullName, extra: extraInfo },
+          };
+        })
+      );
+
       return res;
     } catch (error) {
       console.log(error);
