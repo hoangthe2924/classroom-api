@@ -49,7 +49,7 @@ exports.requestResetPassword = async (req, res) => {
   const user = await User.findOne({
     where: { email: req.body.email },
   });
-  if (!user) return res.status(400).send("User with given email doesn't exist");
+  if (!user) return res.status(400).send("Invalid email!");
   ResetPasswordToken.findOne({
     where: { userId: user.id },
   })
@@ -62,7 +62,8 @@ exports.requestResetPassword = async (req, res) => {
         });
       }
       const link =
-        process.env.FRONT_URL + `/password-reset/${tokenExisted.token}`;
+        process.env.FRONT_URL +
+        `/password-reset/${user.id}/${tokenExisted.token}`;
       const mailSent = sendResetPasswordEmail(req.body.email, link);
       console.log("mailsent", mailSent);
       res.send("Password reset link sent to your email address");
@@ -83,7 +84,7 @@ exports.resetPassword = async (req, res) => {
   }
 
   const user = await User.findByPk(req.params.userId);
-  if (!user) return res.status(400).send("User with given id doesn't exist");
+  if (!user) return res.status(400).send("Invalid link or expired");
 
   const tokenExisted = await ResetPasswordToken.findOne({
     where: { userId: req.params.userId, token: req.params.token },
