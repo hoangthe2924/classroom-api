@@ -3,7 +3,7 @@ const User = db.user;
 const Class = db.class;
 const Op = db.Sequelize.Op;
 const bcrypt = require("bcryptjs");
-
+const emailer = require("./sendConfirmationEmail")
 // Create and Save a new User
 exports.create = (req, res) => {
   // Validate request
@@ -21,12 +21,14 @@ exports.create = (req, res) => {
     password: hash,
     fullname: req.body.fullname,
     studentId: req.body.studentId,
+    status: 2,
   };
 
   // Save User in the database
   User.create(newUser)
     .then((data) => {
-      res.send(data);
+      emailer.sendConfirmation(req.body.email);
+      res.status(200).send(data);
     })
     .catch((err) => {
       res.status(500).send({

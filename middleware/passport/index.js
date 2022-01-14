@@ -27,6 +27,9 @@ passport.use(
     if (!rows.status) {
       return done(null, true, { code: -1 });
     }
+    else if(rows.status === 2) {
+      return done(null, true, { code: 2 });
+    }
     return done(null, true, { code: 1 });
   })
 );

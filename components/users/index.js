@@ -24,8 +24,12 @@ router.post(
   "/login",
   passport.authenticate("local", { session: false }),
   function (req, res, next) {
+    console.log(req.authInfo.code)
     if (req.authInfo.code === -1) {
       return res.status(403).send({ message: "Your account has been banned!" });
+    }
+    else if (req.authInfo.code === 2) {
+      return res.status(412).send({ message: "Your account has not been activated!" });
     }
     console.log("login success");
     const token = jwt.sign(
