@@ -1,7 +1,11 @@
 const db = require("../../models");
 const User = db.user;
+const Class = db.class;
 const Op = db.Sequelize.Op;
 const bcrypt = require("bcryptjs");
+const crypto = require("crypto");
+const { sendResetPasswordEmail } = require("./sendResetPasswordEmail");
+const ResetPasswordToken = db.resetPasswordToken;
 
 // Create and Save a new User
 exports.create = (req, res) => {
@@ -34,9 +38,124 @@ exports.create = (req, res) => {
     });
 };
 
+exports.requestResetPassword = async (req, res) => {
+  // Validate request
+  if (!req.body.email) {
+    return res.status(400).send({
+      message: "Content can not be empty!",
+    });
+  }
+
+  const user = await User.findOne({
+    where: { email: req.body.email },
+  });
+  if (!user) return res.status(400).send("User with given email doesn't exist");
+  ResetPasswordToken.findOne({
+    where: { userId: user.id },
+  })
+    .then(async (tokenExisted) => {
+      if (!tokenExisted) {
+        console.log("Create token");
+        tokenExisted = await ResetPasswordToken.create({
+          userId: user.id,
+          token: crypto.randomBytes(32).toString("hex"),
+        });
+      }
+      const link =
+        process.env.FRONT_URL + `/password-reset/${tokenExisted.token}`;
+      const mailSent = sendResetPasswordEmail(req.body.email, link);
+      console.log("mailsent", mailSent);
+      res.send("Password reset link sent to your email address");
+    })
+    .catch((err) => {
+      res.status(500).send({
+        message: err.message || "Some error occurred in password reset!",
+      });
+    });
+};
+
+exports.resetPassword = async (req, res) => {
+  // Validate request
+  if (!req.body.password) {
+    return res.status(400).send({
+      message: "Content can not be empty!",
+    });
+  }
+
+  const user = await User.findByPk(req.params.userId);
+  if (!user) return res.status(400).send("User with given id doesn't exist");
+
+  const tokenExisted = await ResetPasswordToken.findOne({
+    where: { userId: req.params.userId, token: req.params.token },
+  });
+  if (!tokenExisted) return res.status(400).send("Invalid link or expired");
+
+  user.update({ password: bcrypt.hashSync(req.body.password, 10) });
+  await tokenExisted.destroy();
+
+  res.send("Password reset sucessfully.");
+};
+
+exports.addAdmin = (req, res) => {
+  // Validate request
+  if (
+    !req.body.username ||
+    !req.body.password ||
+    !req.body.email ||
+    !req.body.fullname
+  ) {
+    res.status(400).send({
+      message: "Content can not be empty!",
+    });
+    return;
+  }
+  const hash = bcrypt.hashSync(req.body.password, 10);
+
+  const newUser = {
+    username: req.body.username,
+    fullname: req.body.fullname,
+    email: req.body.email,
+    password: hash,
+    isAdmin: true,
+  };
+
+  // Save User in the database
+  User.create(newUser)
+    .then((data) => {
+      res.send(data);
+    })
+    .catch((err) => {
+      res.status(500).send({
+        message: err.message || "Some error occurred while creating the User.",
+      });
+    });
+};
+
 // Retrieve all Users from the database.
 exports.findAll = (req, res) => {
-  User.findAll()
+  if (!req.user.isAdmin) {
+    res.status(403).send("You don't have permission!");
+  }
+  User.scope("withoutPassword")
+    .findAll()
+    .then((data) => {
+      res.send(data);
+    })
+    .catch((err) => {
+      res.status(500).send({
+        message: err.message || "Some error occurred while retrieving users.",
+      });
+    });
+};
+
+exports.findAllAdmins = (req, res) => {
+  if (!req.user.isAdmin) {
+    res.status(403).send("You don't have permission!");
+  }
+  User.scope("withoutPassword")
+    .findAll({
+      where: { isAdmin: true },
+    })
     .then((data) => {
       res.send(data);
     })
@@ -49,28 +168,23 @@ exports.findAll = (req, res) => {
 
 exports.findOne = (req, res) => {
   const id = req.params.id;
-
-  User.findByPk(id)
-    .then((data) => {
-      if (data) {
-        res.send(data);
-      } else {
-        res.status(404).send({
-          message: `Cannot find User with id=${id}.`,
-        });
-      }
+  if (!req.user.isAdmin) {
+    res.status(403).send("You don't have permission!");
+  }
+  User.scope("withoutPassword")
+    .findByPk(id, {
+      include: [
+        {
+          model: Class,
+          as: "classes",
+          attributes: ["id", "classname", "subject", "createdAt"],
+          through: {
+            attributes: [],
+          },
+          order: [["createdAt", "DESC"]],
+        },
+      ],
     })
-    .catch((err) => {
-      res.status(500).send({
-        message: "Error retrieving User with id=" + id,
-      });
-    });
-};
-
-exports.getInfo = (req, res) => {
-  const id = req.params.username;
-
-  User.findByPk(id)
     .then((data) => {
       if (data) {
         res.send(data);
@@ -88,32 +202,33 @@ exports.getInfo = (req, res) => {
 };
 
 exports.update = async (req, res) => {
-  const userInfo = req.user;
-  console.log("in", userInfo);
+  const userRequest = req.user;
   const updateUser = {
     fullname: req.body.fullname,
-    studentId: req.body.studentId,
+    studentId: req.body.studentId || null,
   };
+  console.log("reqbod", req.body);
+  if (userRequest.id !== req.body.id && !userRequest.isAdmin) {
+    res.status(403).send("You don't have permission!");
+  }
   const existingStudentId = await User.findOne({
     where: { studentId: req.body.studentId },
   });
-  if (existingStudentId && existingStudentId.id !== userInfo.id) {
+
+  if (existingStudentId && existingStudentId.id !== req.body.id) {
     console.log("existed");
     res
       .status(499)
-      .send(
-        "Student Id " +
-          existingStudentId.studentId +
-          " already existed. Please login with your account!"
-      );
+      .send("Student Id " + existingStudentId.studentId + " already existed!");
     return;
   }
 
   User.findOne({
-    where: { id: userInfo.id },
+    where: { id: req.body.id },
     attributes: { exclude: ["password"] },
   })
     .then((member) => {
+      console.log("mem", member);
       if (!member) {
         console.log("Member not found!");
         res
@@ -124,8 +239,41 @@ exports.update = async (req, res) => {
       if (!member.studentId || member.studentId === "") {
         member.update(updateUser);
       } else {
-        member.update({ fullname: req.body.fullname });
+        if (userRequest.isAdmin) {
+          member.update(updateUser);
+        } else {
+          member.update({ fullname: req.body.fullname });
+        }
       }
+      res.send(member);
+    })
+    .catch((err) => {
+      res.status(500).send({
+        message: err.message || "Some error occurred while creating the User.",
+      });
+    });
+};
+
+exports.banUser = async (req, res) => {
+  const isAdmin = req.user.isAdmin;
+
+  if (!isAdmin) {
+    res.status(403).send("You don't have permission!");
+  }
+
+  User.findOne({
+    where: { id: req.body.id },
+    attributes: { exclude: ["password"] },
+  })
+    .then((member) => {
+      if (!member) {
+        console.log("Member not found!");
+        res
+          .status(404)
+          .send("Error retrieving Member with studentId=" + member.studentId);
+        return;
+      }
+      member.update({ status: !member.status });
       res.send(member);
     })
     .catch((err) => {
