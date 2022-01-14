@@ -49,6 +49,14 @@ router.post(
 /* POST register */
 router.post("/register", (req, res, next) => users.create(req, res));
 
+router.post("/password-reset", (req, res, next) =>
+  users.requestResetPassword(req, res)
+);
+
+router.post("/:userId/:token", (req, res, next) =>
+  users.resetPassword(req, res)
+);
+
 router.post(
   "/addAdmin",
   passport.authenticate("jwt", { session: false }),
