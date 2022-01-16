@@ -1,4 +1,3 @@
-const { where } = require("sequelize/dist");
 const db = require("../../models");
 const Assignment = db.assignment;
 const User = db.user;

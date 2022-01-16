@@ -49,11 +49,11 @@ router.post(
 /* POST register */
 router.post("/register", (req, res, next) => users.create(req, res));
 
-router.post("/password-reset", (req, res, next) =>
+router.post("/forgot-password", (req, res, next) =>
   users.requestResetPassword(req, res)
 );
 
-router.post("/:userId/:token", (req, res, next) =>
+router.post("/reset-password/:userId/:token", (req, res, next) =>
   users.resetPassword(req, res)
 );
 
