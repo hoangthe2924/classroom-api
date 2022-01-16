@@ -63,6 +63,11 @@ router.post(
   (req, res, next) => users.addAdmin(req, res)
 );
 
+router.get("/confirm/:token", (req, res, next) => {
+  users.confirmRegistration(req, res)
+});
+
+
 /* Protected domain */
 router.get(
   "/info",

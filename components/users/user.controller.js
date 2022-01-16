@@ -41,6 +41,23 @@ exports.create = (req, res) => {
     });
 };
 
+exports.confirmRegistration = async (req, res) => {
+  const token = req.params.token;
+  try {
+    const jwtdecode = jwt.verify(token, process.env.JWT_SECRET)
+    if (jwtdecode) {
+        console.log(jwtdecode)
+        await User.update({ status: 1 });
+    }
+    return res.status(200).send({
+      message: "Your account has been activated!",
+    });
+  } catch (error) {
+    res.status(500).send({message: "Your link is invalid!",
+    });
+  }  
+};
+
 exports.requestResetPassword = async (req, res) => {
   // Validate request
   if (!req.body.email) {
@@ -77,7 +94,7 @@ exports.requestResetPassword = async (req, res) => {
     });
 };
 
-exports.resetPassword = async (req, res) => {
+exports. resetPassword = async (req, res) => {
   // Validate request
   if (!req.body.password) {
     return res.status(400).send({
