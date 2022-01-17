@@ -3,13 +3,14 @@ const User = db.user;
 const Class = db.class;
 const Op = db.Sequelize.Op;
 const bcrypt = require("bcryptjs");
-const emailer = require("./sendConfirmationEmail")
+const emailer = require("./sendConfirmationEmail");
 const crypto = require("crypto");
 const { sendResetPasswordEmail } = require("./sendResetPasswordEmail");
 const ResetPasswordToken = db.resetPasswordToken;
+var jwt = require("jsonwebtoken");
 
 // Create and Save a new User
-exports.create = (req, res) => {
+exports.create = async (req, res) => {
   // Validate request
   if (!req.body.username || !req.body.password || !req.body.email) {
     res.status(400).send({
@@ -18,6 +19,16 @@ exports.create = (req, res) => {
     return;
   }
   const hash = bcrypt.hashSync(req.body.password, 10);
+
+  const mailExisted = await User.findOne({
+    where: { email: req.body.email },
+  });
+  if (mailExisted) return res.status(400).send("Email already existed!");
+
+  const usernameExisted = await User.findOne({
+    where: { username: req.body.username },
+  });
+  if (usernameExisted) return res.status(400).send("Username already existed!");
 
   const newUser = {
     username: req.body.username,
@@ -44,18 +55,23 @@ exports.create = (req, res) => {
 exports.confirmRegistration = async (req, res) => {
   const token = req.params.token;
   try {
-    const jwtdecode = jwt.verify(token, process.env.JWT_SECRET)
-    if (jwtdecode) {
-        console.log(jwtdecode)
-        await User.update({ status: 1 });
+    const jwtdecode = jwt.verify(token, process.env.JWT_SECRET);
+    if (!jwtdecode) {
+      return res.status(400).send({ message: "Invalid token!" });
     }
+    const user = await User.findOne({
+      where: { email: jwtdecode.email },
+    });
+    if (!user) {
+      return res.status(404).send({ message: "Invalid token!" });
+    }
+    user.update({ status: 1 });
     return res.status(200).send({
       message: "Your account has been activated!",
     });
   } catch (error) {
-    res.status(500).send({message: "Your link is invalid!",
-    });
-  }  
+    res.status(500).send({ message: "Your link is invalid!" });
+  }
 };
 
 exports.requestResetPassword = async (req, res) => {
@@ -95,7 +111,7 @@ exports.requestResetPassword = async (req, res) => {
     });
 };
 
-exports. resetPassword = async (req, res) => {
+exports.resetPassword = async (req, res) => {
   // Validate request
   if (!req.body.password) {
     return res.status(400).send({
