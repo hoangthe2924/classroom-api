@@ -141,7 +141,7 @@ module.exports = {
       if (cls && user) {
         const createdAssignment = await Assignment.create(assignment);
         createdAssignment.setClass(cls);
-        createdAssignment.setUser(user);
+        createdAssignment.setCreator(user);
         return createdAssignment;
       } else {
         return false;

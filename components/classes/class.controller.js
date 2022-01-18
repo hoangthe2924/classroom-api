@@ -110,7 +110,7 @@ exports.createNewClass = async (req, res) => {
   //     message: err.message || "Some error occurred while creating the Class.",
   //   });
   // });
-  createdClass.setUser(owner);
+  createdClass.setOwner(owner);
   // Owner is teacher
   createdClass.addUser(owner, { through: { role: "teacher" } });
 
