@@ -171,14 +171,14 @@ exports.getClassDetail = async (req, res) => {
 
   Class.findByPk(id, {
     include: [
-      {
-        model: User,
-        as: "users",
-        attributes: ["id", "username", "studentId"],
-        through: {
-          attributes: ["role"],
-        },
-      },
+      // {
+      //   model: User,
+      //   as: "users",
+      //   attributes: ["id", "username", "studentId"],
+      //   through: {
+      //     attributes: ["role"],
+      //   },
+      // },
       {
         model: Assignment,
         as: "assignments",
@@ -204,6 +204,36 @@ exports.getClassDetail = async (req, res) => {
         message: "Error retrieving Class with id=" + id,
       });
     });
+};
+
+exports.getListUserInClass = async (req, res) => {
+  const id = req.params.classID;
+  Class.findByPk(id, {
+    attributes: ["id"],
+    include: [
+      {
+        model: User,
+        as: "users",
+        attributes: ["id", "username", "studentId"],
+        through: {
+          attributes: ["role"],
+        },
+      }
+    ]
+  }).then((data) => {
+    if (data) {
+      res.status(200).json(data);
+    } else {
+      res.status(404).send({
+        message: `Cannot find Class with id=${id}.`,
+      });
+    }
+  })
+  .catch((err) => {
+    res.status(500).send({
+      message: "Error retrieving Class with id=" + id,
+    });
+  });
 };
 
 exports.findAll = async (req, res) => {
