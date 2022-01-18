@@ -153,9 +153,11 @@ module.exports = {
 
   async changeGradeReviewRequestStatus(grID, status, newGrade) {
     try {
-      const res1 = await Grade.update({grade: newGrade.expectedGrade}, {where: {id: newGrade.gradeId}});
-      if(!res1){
-        return false;
+      if(status === "approved"){
+        const res1 = await Grade.update({grade: newGrade.expectedGrade}, {where: {id: newGrade.gradeId}});
+        if(!res1){
+          return false;
+        }
       }
       return GradeReview.update({ status: status }, { where: { id: grID } });
     } catch (error) {
