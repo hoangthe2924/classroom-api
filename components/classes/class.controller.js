@@ -391,7 +391,7 @@ exports.checkAvailableClass = async (req, res) => {
 exports.updateStudentList = async (req, res) => {
   const userID = req.user.id; //req.user.id
   const classID = req.params.classID;
-  console.log("req.body", req.body.studentList[0].fullName);
+  console.log("req.body", req.body);
   const studentList = req.body.studentList;
   const result = await classService.updateStudentList(classID, studentList);
 
