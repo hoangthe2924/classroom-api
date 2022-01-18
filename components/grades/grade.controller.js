@@ -122,8 +122,9 @@ exports.changeGradeReviewStatus = async (req, res) => {
   const status = req.body.status;
   const assignmentId = req.params.assignmentID;
   const userId = req.user.id;
+  const newGrade = req.body.newGrade;
 
-  const result = await gradeService.changeGradeReviewRequestStatus(gradeReviewId, status);
+  const result = await gradeService.changeGradeReviewRequestStatus(gradeReviewId, status, newGrade);
   if(!result){
     res.status(404).json({message: `${status} grade review fail!`});
   }else{
