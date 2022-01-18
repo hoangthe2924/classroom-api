@@ -55,6 +55,8 @@ router.get(
 
 router.post("/:classID/user", (req, res) => classController.addUser(req, res));
 
+router.get("/:classID/users", (req, res) => classController.getListUserInClass(req, res));
+
 router.get("/:classID", (req, res) => classController.getClassDetail(req, res));
 
 module.exports = router;
