@@ -239,7 +239,7 @@ module.exports = {
             fullName: student.fullName.val||student.fullName,
             classId: classID,
           });
-          newStudent.setClass(cls);
+          // newStudent.setClass(cls);
         }
       }
       return StudentFullname.findAll({
