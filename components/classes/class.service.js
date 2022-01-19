@@ -230,16 +230,16 @@ module.exports = {
         });
         if (existedStudent) {
           // update
-          existedStudent.update({ fullName: student.fullName });
+          existedStudent.update({ fullName: student.fullName.val||student.fullName });
         }
         // insert
         else {
           const newStudent = await StudentFullname.create({
             studentId: student.studentId,
-            fullName: student.fullName,
+            fullName: student.fullName.val||student.fullName,
             classId: classID,
           });
-          // newStudent.setClass(cls);
+          newStudent.setClass(cls);
         }
       }
       return StudentFullname.findAll({
