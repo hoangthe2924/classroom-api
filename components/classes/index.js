@@ -9,7 +9,7 @@ router.post("/", (req, res) => classController.createNewClass(req, res));
 
 router.post("/people/invite", authTeacher, classController.invitePeople);
 
-router.post("/available/:cjc", classController.checkAvailableClass);
+router.post("/available/:cjc",(req, res) => classController.checkAvailableClass(req, res));
 
 router.post(
   "/:classID/assignments",
