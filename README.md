@@ -2,7 +2,9 @@
 
 create a .env file and add these
 JWT_SECRET=
+
 MYSQL_HOST=
+
 MYSQL_USER=
 MYSQL_PASSWORD=
 MYSQL_DATABASE=
